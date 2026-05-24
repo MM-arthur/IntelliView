@@ -23,6 +23,7 @@
 | 🧠 **个人知识库 RAG** | Arthur 简历 + JD + CSDN 博客 → FAISS 向量检索 |
 | 🔍 **实时搜索** | Tavily API 支持最新知识 |
 | 💾 **会话持久化** | SqliteSaver,重启不丢对话历史 |
+| 🔗 **AG-UI 协议** | 标准 Agent-用户交互协议,支持多 Agent 扩展 |
 
 ---
 
@@ -61,8 +62,17 @@ _get_intent_mode()
                                       ↓
                               agent_router → RAG / 搜索 / 生成
                                               ↓
-                              WebSocket 流式返回
+                              AG-UI 协议 WebSocket 返回
 ```
+
+### AG-UI 协议
+
+IntelliView 采用 **AG-UI (Agent User Interaction Protocol)** 作为前后端通信协议：
+
+- **协议标准**：开源、轻量级、基于事件的 Agent 与用户交互协议
+- **端点**：`/agui` WebSocket 端点
+- **消息格式**：AG-UI 标准格式 `agent-user-interaction` / `user-agent-interaction`
+- **优势**：标准化交互、未来可扩展多 Agent 协作
 
 ### Agent 节点图
 
