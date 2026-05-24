@@ -704,6 +704,82 @@
     </div>
 
     <script>
+        // AG-UI Protocol Implementation
+        class AGUIProtocol {
+            constructor() {
+                this.events = new Map();
+                this.messageQueue = [];
+                this.websocket = null;
+            }
+
+            send(message) {
+                const aguiMessage = {
+                    type: 'agent-user-interaction',
+                    timestamp: Date.now(),
+                    message: message
+                };
+                this.sendMessageToBackend(aguiMessage);
+            }
+
+            receive(message) {
+                const aguiMessage = {
+                    type: 'user-agent-interaction',
+                    timestamp: Date.now(),
+                    message: message
+                };
+                this.dispatchEvent('message', aguiMessage);
+            }
+
+            on(event, callback) {
+                if (!this.events.has(event)) {
+                    this.events.set(event, []);
+                }
+                this.events.get(event).push(callback);
+            }
+
+            dispatchEvent(event, data) {
+                if (this.events.has(event)) {
+                    this.events.get(event).forEach(callback => callback(data));
+                }
+            }
+
+            sendMessageToBackend(message) {
+                if (this.websocket) {
+                    this.websocket.send(JSON.stringify(message));
+                } else {
+                    this.messageQueue.push(message);
+                }
+            }
+
+            connectWebSocket(url) {
+                this.websocket = new WebSocket(url);
+                this.websocket.onmessage = (event) => {
+                    const message = JSON.parse(event.data);
+                    this.receive(message);
+                };
+                this.websocket.onopen = () => {
+                    console.log('AG-UI WebSocket connected');
+                    this.processQueue();
+                };
+                this.websocket.onerror = (error) => {
+                    console.error('AG-UI WebSocket error:', error);
+                };
+                this.websocket.onclose = () => {
+                    console.log('AG-UI WebSocket closed');
+                };
+            }
+
+            processQueue() {
+                while (this.messageQueue.length > 0) {
+                    const message = this.messageQueue.shift();
+                    this.receive(message);
+                }
+            }
+        }
+
+        const agui = new AGUIProtocol();
+        agui.connectWebSocket('ws://localhost:8000/agui');
+
         const { createApp, ref, onMounted, nextTick } = Vue;
 
         createApp({
@@ -809,30 +885,18 @@
                 };
 
                 const connectWebSocket = () => {
-                    const ws = new WebSocket(`ws://localhost:8000/ws/chat/${sessionId.value}`);
+                    // AG-UI 协议：连接到 /agui 端点
+                    const ws = new WebSocket('ws://localhost:8000/agui');
                     websocket.value = ws;
 
                     ws.onopen = () => {};
 
                     ws.onmessage = (event) => {
                         const data = JSON.parse(event.data);
-                        switch (data.type) {
-                            case 'text':
-                                currentAssistantTextBuffer.value += data.content;
-                                if (data.is_final) { flushTextBuffer(); }
-                                scrollToBottom();
-                                break;
-                            case 'tool':
-                                flushTextBuffer();
-                                messages.value.push({ role:'assistant', type:'tool', content:data.content });
-                                scrollToBottom();
-                                break;
-                            case 'tool_response':
-                                flushTextBuffer();
-                                messages.value.push({ role:'assistant', type:'tool_response', content:data.content });
-                                scrollToBottom();
-                                break;
-                            case 'complete':
+                        // AG-UI 格式：Agent 发送消息给用户
+                        if (data.type === 'user-agent-interaction') {
+                            if (data.is_complete) {
+                                // 完成信号
                                 flushTextBuffer();
                                 sending.value = false;
                                 isTyping.value = false;
@@ -842,16 +906,42 @@
                                 mockInterviewMode.value = data.mock_interview_mode||false;
                                 currentRound.value = data.current_round||0;
                                 scrollToBottom();
-                                break;
-                            case 'error':
-                                flushTextBuffer();
-                                messages.value.push({ role:'assistant', type:'error', content:'错误: '+data.content });
-                                sending.value = false;
+                            } else if (data.message) {
+                                // 收到 AI 回复
+                                currentAssistantTextBuffer.value += data.message;
                                 scrollToBottom();
-                                break;
-                            case 'reset_complete':
-                                messages.value = [];
-                                break;
+                            }
+                        } else if (data.type === 'text') {
+                            // 兼容旧格式
+                            currentAssistantTextBuffer.value += data.content;
+                            if (data.is_final) { flushTextBuffer(); }
+                            scrollToBottom();
+                        } else if (data.type === 'complete') {
+                            // 兼容旧格式
+                            flushTextBuffer();
+                            sending.value = false;
+                            isTyping.value = false;
+                            const last = messages.value.filter(m=>m.role==='assistant'&&!m.timestamp).pop();
+                            if (last) last.timestamp = Date.now();
+                            intentMode.value = data.intent_mode||'normal';
+                            mockInterviewMode.value = data.mock_interview_mode||false;
+                            currentRound.value = data.current_round||0;
+                            scrollToBottom();
+                        } else if (data.type === 'tool') {
+                            flushTextBuffer();
+                            messages.value.push({ role:'assistant', type:'tool', content:data.content });
+                            scrollToBottom();
+                        } else if (data.type === 'tool_response') {
+                            flushTextBuffer();
+                            messages.value.push({ role:'assistant', type:'tool_response', content:data.content });
+                            scrollToBottom();
+                        } else if (data.type === 'error') {
+                            flushTextBuffer();
+                            messages.value.push({ role:'assistant', type:'error', content:'错误: '+data.message });
+                            sending.value = false;
+                            scrollToBottom();
+                        } else if (data.type === 'reset_complete') {
+                            messages.value = [];
                         }
                     };
 
@@ -864,7 +954,12 @@
                     messages.value.push({ role:'user', type:'text', content:inputMessage.value, timestamp:Date.now() });
                     currentAssistantTextBuffer.value = '';
                     if (websocket.value && websocket.value.readyState === WebSocket.OPEN) {
-                        websocket.value.send(JSON.stringify({ type:'chat', content:inputMessage.value }));
+                        // AG-UI 格式：用户发送消息给 Agent
+                        websocket.value.send(JSON.stringify({ 
+                            type: 'agent-user-interaction',
+                            timestamp: Date.now(),
+                            message: inputMessage.value
+                        }));
                         sending.value = true;
                         isTyping.value = true;
                         inputMessage.value = '';

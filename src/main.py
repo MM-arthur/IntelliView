@@ -45,14 +45,14 @@ app.add_middleware(
 # ── Routes ──────────────────────────────────────────────────────────────────
 
 from src.routes.rest import router as api_router
-from src.routes.websocket import websocket_chat
+from src.routes.agui import router as agui_router
 
 app.include_router(api_router)
 
-# WebSocket 路由
-@app.websocket("/ws/chat/{session_id}")
-async def ws_chat(websocket, session_id: str):
-    await websocket_chat(websocket, session_id)
+app.include_router(agui_router, tags=["AG-UI"])
+
+# 注意：原有的 /ws/chat 端点已被 AG-UI 协议替换
+# 请使用 /agui 端点
 
 
 # ── Init agent on startup ─────────────────────────────────────────────────────
