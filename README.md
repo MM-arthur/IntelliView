@@ -1,138 +1,141 @@
-# IntelliView - AI 面试实时助手
+# IntelliView - AI Interview Assistant
 
-> 不再害怕面试，AI 全程护航。
-> 基于 **LangGraph** 的智能面试助手，实时 Handle 面试官，支持多轮模拟面试、面试复盘、职业规划。
-> 单例 Agent + 会话隔离 + 流式事件驱动。
+> Fear no interview, AI accompanies you throughout.
+> A **LangGraph**-powered intelligent interview assistant, handling interviewers in real-time, supporting multi-round mock interviews, post-interview reviews, and career planning.
+> Single Agent + session isolation + streaming event-driven architecture.
 
-**Contributors:**
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · **MiniMax-M2**
+**Developed with Claude Code &middot; OpenClaw contributes as a personal assistant**
 
----
+[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · **MiniMax-M2.7**
 
-## 核心特性
-
-| 特性 | 说明 |
-|------|------|
-| 🤝 **模拟面试** | 多轮对话,结束时输出结构化评估报告 |
-| 📋 **面试复盘** | 对照 JD/简历,输出技术评分 + 改进建议 |
-| 🧭 **职业规划** | 召回简历 + 对话历史,输出个性化发展路径 |
-| 🎤 **语音输入** | 实时语音转文字,直接对话 |
-| 🧠 **评估历史记忆** | 面试表现自动追踪，topic 级评分 + 趋势分析，AI 出题更有针对性 |
-| 📷 **面试官行为分析** | YOLOv8 实时分析表情/视线/姿势/注意力 |
-| 📄 **多格式解析** | 图片/ PDF(OCR)/ Excel / Word / PPT |
-| 🧠 **个人知识库 RAG** | Arthur 简历 + JD + CSDN 博客 → FAISS 向量检索 |
-| 🔍 **实时搜索** | Tavily API 支持最新知识 |
-| 💾 **会话持久化** | SqliteSaver,重启不丢对话历史 |
-| 🔗 **AG-UI 协议** | 标准 Agent-用户交互协议,支持多 Agent 扩展 |
+[中文版](./README_zh.md)
 
 ---
 
-## 设计架构
+## Core Features
 
-### 单例 Agent + 分层会话
+| Feature | Description |
+|---------|-------------|
+| 🤝 **Mock Interview** | Multi-round dialogue with structured evaluation report at the end |
+| 📋 **Interview Review** | Compare against JD/resume, output technical scores + improvement suggestions |
+| 🧭 **Career Planning** | Recall resume + conversation history, output personalized development path |
+| 🎤 **Voice Input** | Real-time speech-to-text, direct conversation |
+| 🧠 **Evaluation History Memory** | Automatic interview performance tracking, topic-level scores + trend analysis for more targeted AI question generation |
+| 📷 **Interviewer Behavior Analysis** | YOLOv8 real-time analysis of expressions/gaze/pose/attention |
+| 📄 **Multi-format Parsing** | Image/ PDF(OCR)/ Excel / Word / PPT |
+| 🧠 **Personal Knowledge Base RAG** | Arthur's resume + JD + CSDN blog → FAISS vector retrieval |
+| 🔍 **Real-time Search** | Tavily API for the latest knowledge |
+| 💾 **Session Persistence** | SqliteSaver, conversation history survives restarts |
+| 🔗 **AG-UI Protocol** | Standard Agent-User Interaction Protocol, supports multi-Agent extension |
+
+---
+
+## Architecture
+
+### Single Agent + Layered Sessions
 
 ```
-进程启动时 → AgentSingleton 编译一次 LangGraph(11节点)
-              ↓ session_id
-            SessionManager → 每个会话分配独立 SqliteSaver
-              ↓
-            对话历史 + RAG + MCP工具(均会话隔离)
+Process Startup → AgentSingleton compiles LangGraph once (11 nodes)
+                 ↓ session_id
+               SessionManager → each session gets independent SqliteSaver
+                 ↓
+               Conversation history + RAG + MCP tools (all session-isolated)
 ```
 
-### 意图路由
+### Intent Routing
 
 ```
-用户输入
+User Input
   ↓
-intent_recognition(LLM识别意图)
+intent_recognition (LLM identifies intent)
   ↓
 _get_intent_mode()
-  ├── mock_interview    → 多轮模拟面试
-  ├── interview_review  → 面试复盘分析
-  ├── career_planning   → 职业发展规划
-  └── normal_chat       → RAG检索 / 网页搜索 / 直接生成
+  ├── mock_interview    → multi-round mock interview
+  ├── interview_review  → post-interview analysis
+  ├── career_planning   → career development planning
+  └── normal_chat       → RAG retrieval / web search / direct generation
 ```
 
-### 数据流
+### Data Flow
 
 ```
-文本/语音/视频帧 → pre_router → optimize_transcript
+Text/Voice/Video Frame → pre_router → optimize_transcript
                                       ↓
                               intent_recognition
                                       ↓
-                              agent_router → RAG / 搜索 / 生成
+                              agent_router → RAG / Search / Generate
                                               ↓
-                              AG-UI 协议 WebSocket 返回
+                              AG-UI Protocol WebSocket return
 ```
 
-### AG-UI 协议
+### AG-UI Protocol
 
-IntelliView 采用 **AG-UI (Agent User Interaction Protocol)** 作为前后端通信协议：
+IntelliView uses **AG-UI (Agent User Interaction Protocol)** for frontend-backend communication:
 
-- **协议标准**：开源、轻量级、基于事件的 Agent 与用户交互协议
-- **端点**：`/agui` WebSocket 端点
-- **消息格式**：AG-UI 标准格式 `agent-user-interaction` / `user-agent-interaction`
-- **优势**：标准化交互、未来可扩展多 Agent 协作
+- **Protocol Standard**: Open source, lightweight, event-driven Agent-User interaction protocol
+- **Endpoint**: `/agui` WebSocket endpoint
+- **Message Format**: AG-UI standard format `agent-user-interaction` / `user-agent-interaction`
+- **Advantage**: Standardized interaction, future-ready for multi-Agent collaboration
 
-### Agent 节点图
+### Agent Node Graph
 
 ```mermaid
 graph TD
-    START([用户输入]) --> INPUT_TYPE{输入类型}
+    START([User Input]) --> INPUT_TYPE{Input Type}
 
-    INPUT_TYPE -->|文本| TEXT_INPUT
-    INPUT_TYPE -->|语音| VOICE_INPUT
-    INPUT_TYPE -->|视频帧| VIDEO_INPUT
-    INPUT_TYPE -->|图片/PDF| FILE_IMG
+    INPUT_TYPE -->|Text| TEXT_INPUT
+    INPUT_TYPE -->|Voice| VOICE_INPUT
+    INPUT_TYPE -->|Video Frame| VIDEO_INPUT
+    INPUT_TYPE -->|Image/PDF| FILE_IMG
     INPUT_TYPE -->|Excel/Word| FILE_DOC
 
     TEXT_INPUT --> OPTIMIZE
-    VOICE_INPUT --> WHISPER[Funasr 语音识别]
+    VOICE_INPUT --> WHISPER[Funasr Speech Recognition]
     WHISPER --> TRANSCRIPT[transcript]
     TRANSCRIPT --> OPTIMIZE
 
-    FILE_IMG --> OCR[PaddleOCR 文字识别]
+    FILE_IMG --> OCR[PaddleOCR Text Recognition]
     OCR --> TRANSCRIPT
 
-    FILE_DOC --> DOC_PARSE[文档解析]
+    FILE_DOC --> DOC_PARSE[Document Parsing]
     DOC_PARSE --> TRANSCRIPT
 
-    VIDEO_INPUT --> YOLO[YOLOv8n 行为分析]
+    VIDEO_INPUT --> YOLO[YOLOv8n Behavior Analysis]
     YOLO --> BEHAVIOR_RESULT
 
     OPTIMIZE[optimize_transcript] --> INTENT[intent_recognition]
     INTENT --> ROUTER[agent_router]
 
-    ROUTER -->|技术/个人问题| RAG[RAG检索]
-    RAG --> CHECK1{RAG有结果?}
-    CHECK1 -->|有| GENERATE_RAG[generate_response]
-    CHECK1 -->|无| SEARCH
+    ROUTER -->|Technical/Personal Questions| RAG[RAG Retrieval]
+    RAG --> CHECK1{RAG has results?}
+    CHECK1 -->|Yes| GENERATE_RAG[generate_response]
+    CHECK1 -->|No| SEARCH
 
-    ROUTER -->|最新知识| SEARCH[网页搜索]
+    ROUTER -->|Latest Knowledge| SEARCH[Web Search]
     SEARCH --> GENERATE_WEB[generate_response]
 
-    ROUTER -->|开放性问题| GENERATE_OPEN[generate_response]
+    ROUTER -->|Open-ended Questions| GENERATE_OPEN[generate_response]
 
-    ROUTER -->|模拟面试| MOCK[MOCK_INTERVIEW 多轮对话]
-    MOCK --> MOCK_LOOP{继续?}
-    MOCK_LOOP -->|继续| MOCK
-    MOCK_LOOP -->|结束| MOCK_REPORT[生成评估报告]
+    ROUTER -->|Mock Interview| MOCK[MOCK_INTERVIEW Multi-round Dialogue]
+    MOCK --> MOCK_LOOP{Continue?}
+    MOCK_LOOP -->|Continue| MOCK
+    MOCK_LOOP -->|End| MOCK_REPORT[Generate Evaluation Report]
 
-    ROUTER -->|面试复盘| REVIEW[INTERVIEW_REVIEW]
-    REVIEW --> REVIEW_RPT[生成复盘报告]
+    ROUTER -->|Interview Review| REVIEW[INTERVIEW_REVIEW]
+    REVIEW --> REVIEW_RPT[Generate Review Report]
 
-    ROUTER -->|职业规划| CAREER[CAREER_PLANNING]
-    CAREER --> CAREER_PLAN[生成发展规划]
+    ROUTER -->|Career Planning| CAREER[CAREER_PLANNING]
+    CAREER --> CAREER_PLAN[Generate Development Plan]
 
-    BEHAVIOR_RESULT --> BEHAVIOR_RESP[generate_response 面试官分析]
+    BEHAVIOR_RESULT --> BEHAVIOR_RESP[generate_response Interviewer Analysis]
 
-    GENERATE_RAG --> END1([输出])
-    GENERATE_WEB --> END2([输出])
-    GENERATE_OPEN --> END3([输出])
-    BEHAVIOR_RESP --> END4([输出])
-    MOCK_REPORT --> END5([输出])
-    REVIEW_RPT --> END6([输出])
-    CAREER_PLAN --> END7([输出])
+    GENERATE_RAG --> END1([Output])
+    GENERATE_WEB --> END2([Output])
+    GENERATE_OPEN --> END3([Output])
+    BEHAVIOR_RESP --> END4([Output])
+    MOCK_REPORT --> END5([Output])
+    REVIEW_RPT --> END6([Output])
+    CAREER_PLAN --> END7([Output])
 
     style OPTIMIZE fill:#4a90d9,color:#fff
     style INTENT fill:#4a90d9,color:#fff
@@ -159,175 +162,175 @@ graph TD
 
 ---
 
-## 快速启动
+## Quick Start
 
 ```bash
-# 1. 安装依赖
+# 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. 配置 .env
+# 2. Configure .env
 MOONSHOT_API_KEY=your_moonshot_api_key
 
-# 3. 启动后端
+# 3. Start backend
 python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
-# 看到 "[AgentSingleton] LangGraph 编译完成" 即成功
+# Success when you see "[AgentSingleton] LangGraph compiled"
 
-# 4. 启动前端(另一个终端)
+# 4. Start frontend (another terminal)
 cd src/ui && python -m http.server 8080
 ```
 
-访问:
-- 前端界面:http://localhost:8080
-- API 文档:http://localhost:8000/docs
+Access:
+- Frontend: http://localhost:8080
+- API Docs: http://localhost:8000/docs
 
 ---
 
-## 前端:Apple 设计风格
+## Frontend: Apple Design Style
 
-界面采用 **Apple Design System**,视觉语言:
+Interface uses **Apple Design System** visual language:
 
-- **配色**:Apple Blue `#0071E3` + 纯白背景 + 浅灰 `#F5F5F7` 气泡
-- **字体**:SF Pro Display → Helvetica Neue 回退
-- **布局**:极简留白,大字层次分明,无多余装饰
-- **深色模式**:跟随系统偏好,Apple 深色系
+- **Colors**: Apple Blue `#0071E3` + pure white background + light gray `#F5F5F7` bubbles
+- **Font**: SF Pro Display → Helvetica Neue fallback
+- **Layout**: Minimal whitespace, clear typography hierarchy, no unnecessary decorations
+- **Dark Mode**: Follows system preference, Apple dark color scheme
 
-| 元素 | 风格 |
-|------|------|
-| 用户气泡 | Apple Blue 实色,无渐变 |
-| AI 气泡 | 浅灰 `#F5F5F7`,底部圆角尖角 |
-| 输入框 | 浅灰边框,Blue focus 环 |
-| 意图栏 | Pill 胶囊,蓝/绿/紫区分模式 |
-| Header | 纯黑背景,1px 底边线 |
+| Element | Style |
+|---------|-------|
+| User Bubble | Apple Blue solid, no gradients |
+| AI Bubble | Light gray `#F5F5F7`, bottom rounded corner pointed |
+| Input Box | Light gray border, Blue focus ring |
+| Intent Bar | Pill capsules, blue/green/purple to distinguish modes |
+| Header | Pure black background, 1px bottom border |
 
 ---
 
-## 技术栈
+## Tech Stack
 
-| 类别 | 技术 |
-|------|------|
+| Category | Tech |
+|----------|------|
 | Agent | LangGraph, LangChain |
 | LLM | Moonshot AI (moonshot-v1-8k) |
-| 语音 | Funasr Paraformer(中文)/ Whisper |
-| 行为分析 | YOLOv8n |
+| Speech | Funasr Paraformer (Chinese) / Whisper |
+| Behavior Analysis | YOLOv8n |
 | OCR | PaddleOCR |
-| 向量检索 | FAISS + Sentence Transformers |
-| 搜索 | Tavily API |
+| Vector Retrieval | FAISS + Sentence Transformers |
+| Search | Tavily API |
 
 ---
 
-## 项目结构
+## Project Structure
 
 ```
 src/
-├── main.py              # FastAPI 入口（路由注册 + CORS + startup）
-├── multi_agent.py       # LangGraph 定义（11节点）
-├── skill_manager.py   # 统一 Skill 加载（支持 DeerFlow workflow/calls/sub_agents）
-├── mcp_client.py       # MCP 工具客户端
-├── routes/             # 路由模块（从 main.py 拆分）
-│   ├── rest.py         # REST API 端点
-│   └── websocket.py    # WebSocket 聊天处理器
-├── core/               # 核心模块
-│   ├── session_manager.py  # SessionManager + AgentSingleton 单例
-│   ├── state.py           # AgentState 定义
-│   ├── llm.py             # LLM 配置
-│   └── retry.py           # 重试机制
-├── memory/             # 评估历史记忆系统
-│   └── evaluation_memory.py  # Topic评分 / 趋势 / 改进建议
-├── nodes/              # 节点实现
-│   ├── career_intents.py # 模拟面试 / 复盘 / 职业规划
+├── main.py              # FastAPI entry (route registration + CORS + startup)
+├── multi_agent.py       # LangGraph definition (11 nodes)
+├── skill_manager.py   # Unified Skill loading (supports DeerFlow workflow/calls/sub_agents)
+├── mcp_client.py       # MCP tool client
+├── routes/             # Route modules (split from main.py)
+│   ├── rest.py         # REST API endpoints
+│   └── websocket.py    # WebSocket chat handler
+├── core/               # Core modules
+│   ├── session_manager.py  # SessionManager + AgentSingleton singleton
+│   ├── state.py           # AgentState definition
+│   ├── llm.py             # LLM configuration
+│   └── retry.py           # Retry mechanism
+├── memory/             # Evaluation history memory system
+│   └── evaluation_memory.py  # Topic scores / trends / improvement suggestions
+├── nodes/              # Node implementations
+│   ├── career_intents.py # Mock interview / review / career planning
 │   └── ...              # preprocessing / routing / generation
 ├── rag/
-│   └── RAG.py         # FAISS持久化 + 个人知识库
+│   └── RAG.py         # FAISS persistence + personal knowledge base
 └── ui/
-    └── index.html     # Apple 风格前端（Vue 3)
+    └── index.html     # Apple style frontend (Vue 3)
 ```
 
 ---
 
-## API 概览
+## API Overview
 
-| 端点 | 方式 | 功能 |
-|------|------|------|
-| `/ws/chat/{session_id}` | WebSocket | 对话(流式) |
-| `/api/models` | GET | 可用模型列表 |
-| `/api/initialize` | POST | 初始化会话 |
-| `/api/process_audio` | POST | 语音 → 转文字 → AI回复 |
-| `/api/analyze_behavior` | POST | 视频帧 → YOLO行为分析 |
-| `/api/upload` | POST | 文件上传(OCR/解析) |
+| Endpoint | Method | Function |
+|----------|--------|----------|
+| `/ws/chat/{session_id}` | WebSocket | Chat (streaming) |
+| `/api/models` | GET | Available model list |
+| `/api/initialize` | POST | Initialize session |
+| `/api/process_audio` | POST | Voice → text → AI response |
+| `/api/analyze_behavior` | POST | Video frame → YOLO behavior analysis |
+| `/api/upload` | POST | File upload (OCR/parsing) |
 
-**WebSocket 对话示例:**
+**WebSocket Chat Example:**
 
 ```javascript
 const ws = new WebSocket('ws://localhost:8000/ws/chat/session_1');
-ws.send(JSON.stringify({ type: 'chat', content: '来,模拟面试一下' }));
+ws.send(JSON.stringify({ type: 'chat', content: 'Let\'s do a mock interview' }));
 
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
   if (data.type === 'text') process.stdout.write(data.content);
   if (data.type === 'complete') {
-    console.log('\n意图模式:', data.intent_mode);
-    console.log('面试轮次:', data.current_round);
+    console.log('\nIntent mode:', data.intent_mode);
+    console.log('Interview rounds:', data.current_round);
   }
 };
 ```
 
 ---
 
-## 环境变量
+## Environment Variables
 
-| 变量 | 必填 | 说明 | 默认值 |
-|------|------|------|--------|
-| `MOONSHOT_API_KEY` | ✅ | Moonshot API 密钥 | - |
-| `TAVILY_API_KEY` | 否 | Tavily 搜索 | - |
-| `SPEECH_ENGINE` | 否 | `sensevoice` 或 `funasr` | `sensevoice` |
+| Variable | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `MOONSHOT_API_KEY` | ✅ | Moonshot API key | - |
+| `TAVILY_API_KEY` | No | Tavily search | - |
+| `SPEECH_ENGINE` | No | `sensevoice` or `funasr` | `sensevoice` |
 
 ---
 
-## Skill 系统
+## Skill System
 
-核心文件：`src/skill_manager.py`（唯一文件，包含 SkillLoader + SkillManager）
+Core file: `src/skill_manager.py` (single file, contains SkillLoader + SkillManager)
 
-支持 DeerFlow 风格增强字段（SKILL.md）：
+Supports DeerFlow-style enhanced fields (SKILL.md):
 
 ```markdown
-## 工作流
-1. 初始化面试情境
-2. 生成第一个问题
-3. 分析用户回答
-4. 结束时调用 interview_review
+## Workflow
+1. Initialize interview context
+2. Generate first question
+3. Analyze user response
+4. Call interview_review at the end
 
-## 可调用子技能
+## Callable Sub-Skills
 calls:
   - skill: interview_review
     trigger: interview_ended
 
-## 子Agent定义
+## Sub-Agent Definition
 - name: question_generator
-  role: 资深面试官，擅长追问
+  role: Senior interviewer, good at follow-up questions
   tools: [web_search, rag_processing]
 ```
 
-**使用示例**（Python）：
+**Usage Example** (Python):
 ```python
 from src.skill_manager import get_skill_manager
 
 sm = get_skill_manager()
 
-# 获取 Skill 函数
+# Get Skill function
 skill_fn = sm.get_skill(intent_mode="mock_interview")
 
-# 获取增强字段
-workflow = sm.get_workflow("mock_interview")      # 工作流描述
-calls    = sm.get_calls("mock_interview")         # chaining 规则
-agents   = sm.get_sub_agents("mock_interview")   # 子 Agent 定义
+# Get enhanced fields
+workflow = sm.get_workflow("mock_interview")      # Workflow description
+calls    = sm.get_calls("mock_interview")         # Chaining rules
+agents   = sm.get_sub_agents("mock_interview")   # Sub-Agent definitions
 
-# 获取 Skill 元信息
+# Get Skill metadata
 info = sm.get_skill_info("mock_interview")
 ```
 
 ---
 
-## Docker 部署
+## Docker Deployment
 
 ```bash
 docker build -t langchain-ai-stack .
@@ -337,25 +340,25 @@ docker run -d -p 8000:8000 -p 8080:8080 \
   langchain-ai-stack
 ```
 
-详细文档见 [DEPLOY.md](./DEPLOY.md)。
+See [DEPLOY.md](./DEPLOY.md) for details.
 
 ---
 
-## 开发
+## Development
 
-**修改 Agent 逻辑** → 编辑 `src/multi_agent.py` → 重启服务
+**Modify Agent Logic** → Edit `src/multi_agent.py` → Restart service
 
-**调试会话:**
+**Debug Sessions:**
 ```bash
-GET  /api/sessions              # 查看活跃会话
-GET  /api/session/{session_id} # 查看指定会话状态
-POST /api/reset_conversation   # 重置会话
+GET  /api/sessions              # View active sessions
+GET  /api/session/{session_id} # View specific session status
+POST /api/reset_conversation   # Reset conversation
 ```
 
 ---
 
-## 里程碑
+## Milestones
 
-- **2026.04** Nova 加入贡献
+- **2026.04** Nova joined as contributor
 
-*Arthur · Nova · MiniMax-M2*
+*Arthur · Nova · MiniMax-M2.7*
