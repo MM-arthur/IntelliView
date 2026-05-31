@@ -59,7 +59,9 @@ app.include_router(agui_router, tags=["AG-UI"])
 
 @app.on_event("startup")
 async def startup_event():
+    from src.routes.rest import init_config_file
     from src.core.session_manager import get_agent_singleton
+    init_config_file()
     agent = get_agent_singleton()
     logger.info(f"[Startup] Agent initialized, model: {agent.agent}")
 

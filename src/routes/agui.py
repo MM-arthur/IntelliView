@@ -39,6 +39,28 @@ manager = AGUIConnectionManager()
 
 
 # 导入原有的聊天逻辑
+def _get_timestamp(websocket) -> int:
+    """Extract timestamp from websocket headers."""
+    if websocket.extra_headers:
+        return int(websocket.extra_headers.get("timestamp", 0))
+    return 0
+
+
+def _make_response_msg(result: dict, websocket, is_complete: bool = False, **kwargs) -> dict:
+    """Build AG-UI response message from result dict."""
+    ts = _get_timestamp(websocket)
+    return {
+        "type": "user-agent-interaction",
+        "timestamp": int((result.get("timestamp") or 0) * 1000) or ts,
+        "message": result.get("response", ""),
+        "intent_mode": result.get("intent_mode", "normal"),
+        "mock_interview_mode": result.get("mock_interview_mode", False),
+        "current_round": result.get("current_round", 0),
+        "is_complete": is_complete,
+        **kwargs,
+    }
+
+
 async def handle_chat_message(session_id: str, query: str, websocket: WebSocket):
     """处理聊天消息 - 调用原有的 websocket_chat 逻辑"""
     from src.core.session_manager import get_session_manager, get_agent_singleton, build_langgraph_config
@@ -59,22 +81,10 @@ async def handle_chat_message(session_id: str, query: str, websocket: WebSocket)
 
         # AG-UI 格式响应
         response_text = result.get("response", "")
-        await websocket.send_json({
-            "type": "user-agent-interaction",
-            "timestamp": int(result.get("timestamp", 0) * 1000) if result.get("timestamp") else int(websocket.extra_headers.get("timestamp", 0)) if websocket.extra_headers else 0,
-            "message": response_text,
-            "intent_mode": result.get("intent_mode", "normal"),
-            "mock_interview_mode": result.get("mock_interview_mode", False),
-            "current_round": result.get("current_round", 0)
-        })
+        await websocket.send_json(_make_response_msg(result, websocket))
 
         # 发送完成信号
-        await websocket.send_json({
-            "type": "user-agent-interaction",
-            "timestamp": int(result.get("timestamp", 0) * 1000) if result.get("timestamp") else int(websocket.extra_headers.get("timestamp", 0)) if websocket.extra_headers else 0,
-            "message": "",
-            "is_complete": True
-        })
+        await websocket.send_json(_make_response_msg(result, websocket, is_complete=True))
 
     except Exception as e:
         import traceback

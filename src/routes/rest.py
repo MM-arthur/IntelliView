@@ -57,6 +57,7 @@ def build_langgraph_config(session_id: str) -> dict:
 # ── MCP Config Loader ─────────────────────────────────────────────────────────
 
 def load_config_from_json():
+    """Load MCP config from file. Read-only, no side effects."""
     default_config = {
         "get_current_time": {
             "command": "python",
@@ -69,16 +70,28 @@ def load_config_from_json():
         if CONFIG_FILE_PATH.exists():
             with open(CONFIG_FILE_PATH, "r", encoding="utf-8") as f:
                 config = json.load(f)
-                if not config:
-                    return default_config
-                return config
+                return config if config else default_config
         else:
-            with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
-                json.dump(default_config, f, indent=2, ensure_ascii=False)
             return default_config
     except Exception as e:
         logger.error(f"加载配置文件失败: {e}")
         return default_config
+
+
+def init_config_file():
+    """Initialize config file with defaults if missing. Call once at startup."""
+    if not CONFIG_FILE_PATH.exists():
+        default_config = {
+            "get_current_time": {
+                "command": "python",
+                "args": ["src/mcp_server/mcp_server_time.py"],
+                "transport": "stdio"
+            }
+        }
+        CONFIG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(CONFIG_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(default_config, f, indent=2, ensure_ascii=False)
+        logger.info(f"[Init] Created default config at {CONFIG_FILE_PATH}")
 
 
 # ── MCP Tools ────────────────────────────────────────────────────────────────
