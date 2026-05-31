@@ -600,9 +600,43 @@ def run_rag(question: str, urls: List[str] = None, file_path: str = None):
     
     return {"answer": answer, "documents": docs}
 
-# 使用示例
+
+class PersonalKnowledgeRAG:
+    """"Wrapper for run_rag that provides a query() interface.
+
+    Used by rag_processing, interview_review, and career_planning nodes.
+    """
+
+    def __init__(self):
+        self.knowledge_base = os.getenv("RAG_KNOWLEDGE_BASE", "")
+
+    def query(self, question: str, top_k: int = 5) -> dict:
+        """Query personal knowledge base.
+
+        Args:
+            question: User question
+            top_k: Number of results to return (default 5)
+
+        Returns:
+            dict with keys: {"results": str, "sources": list}
+        """
+        try:
+            result = run_rag(question=question, urls=None, file_path=self.knowledge_base)
+            sources = []
+            for doc in result.get("documents", []):
+                src = doc.metadata.get("source", "")
+                sources.append(src) if src else None
+            return {
+                "results": result.get("answer", ""),
+                "sources": sources,
+            }
+        except Exception as e:
+            print(f"❌ PersonalKnowledgeRAG query failed: {e}")
+            return {"results": "", "sources": []}
+
+
+
 if __name__ == "__main__":
-    # 从URL获取答案
     url_response = run_rag(
         question="什么是MySQL库表设计?",
         urls=[
