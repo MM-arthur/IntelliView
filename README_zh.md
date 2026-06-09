@@ -6,7 +6,7 @@
 
 **使用 Claude Code 开发 &middot; OpenClaw 作为个人助手贡献 · Hermes Agent 作为个人助手贡献**
 
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega--Hermes-Nous--Research-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
+[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega-Hermes%20Agent-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
 
 [English](./README.md)
 
@@ -362,4 +362,4 @@ POST /api/reset_conversation   # 重置会话
 - **2026.04** Nova 加入贡献
 - **2026.06** Vega 加入贡献
 
-*Arthur · Nova · Vega-Hermes(库) · MiniMax-M3*
+*Arthur · Nova · Vega · MiniMax-M3*

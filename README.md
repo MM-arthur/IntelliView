@@ -6,7 +6,7 @@
 
 **Developed with Claude Code &middot; OpenClaw contributes as a personal assistant · Hermes Agent contributes as a personal assistant**
 
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega--Hermes-Nous--Research-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
+[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega-Hermes%20Agent-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
 
 [中文版](./README_zh.md)
 
@@ -362,4 +362,4 @@ POST /api/reset_conversation   # Reset conversation
 - **2026.04** Nova joined as contributor
 - **2026.06** Vega joined as contributor
 
-*Arthur · Nova · Vega-Hermes(库) · MiniMax-M3*
+*Arthur · Nova · Vega · MiniMax-M3*
