@@ -4,9 +4,9 @@
 > A **LangGraph**-powered intelligent interview assistant, handling interviewers in real-time, supporting multi-round mock interviews, post-interview reviews, and career planning.
 > Single Agent + session isolation + streaming event-driven architecture.
 
-**Developed with Claude Code &middot; OpenClaw contributes as a personal assistant**
+**Developed with Claude Code &middot; OpenClaw contributes as a personal assistant · Hermes Agent contributes as a personal assistant**
 
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · **MiniMax-M2.7**
+[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega--Hermes-Nous--Research-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
 
 [中文版](./README_zh.md)
 
@@ -360,5 +360,6 @@ POST /api/reset_conversation   # Reset conversation
 ## Milestones
 
 - **2026.04** Nova joined as contributor
+- **2026.06** Vega joined as contributor
 
-*Arthur · Nova · MiniMax-M2.7*
+*Arthur · Nova · Vega-Hermes(库) · MiniMax-M3*
