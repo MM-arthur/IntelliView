@@ -4,9 +4,9 @@
 > 基于 **LangGraph** 的智能面试助手，实时 Handle 面试官，支持多轮模拟面试、面试复盘、职业规划。
 > 单例 Agent + 会话隔离 + 流式事件驱动。
 
-**使用 Claude Code 开发 &middot; OpenClaw 作为个人助手贡献**
+**使用 Claude Code 开发 &middot; OpenClaw 作为个人助手贡献 · Hermes Agent 作为个人助手贡献**
 
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · **MiniMax-M2.7**
+[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega--Hermes-Nous--Research-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
 
 [English](./README.md)
 
@@ -360,5 +360,6 @@ POST /api/reset_conversation   # 重置会话
 ## 里程碑
 
 - **2026.04** Nova 加入贡献
+- **2026.06** Vega 加入贡献
 
-*Arthur · Nova · MiniMax-M2.7*
+*Arthur · Nova · Vega-Hermes(库) · MiniMax-M3*
