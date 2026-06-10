@@ -49,3 +49,10 @@ class AgentState(TypedDict):
 
     # === Career planning ===
     career_plan: Optional[str]
+
+    # === Multi-agent (Planner / Workers / Reporter) ===
+    tasks: Optional[List[Dict[str, Any]]]      # Planner output: list of sub-tasks
+    task_results: Optional[List[Dict[str, Any]]]  # Worker outputs (per task)
+    worker_errors: Optional[List[Dict[str, Any]]]  # Per-worker error + retry history
+    final_report: Optional[str]                # Reporter aggregated output
+    fallback_used: Optional[bool]               # True if any task used fallback
