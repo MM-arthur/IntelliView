@@ -63,7 +63,19 @@ async def startup_event():
     from src.core.session_manager import get_agent_singleton
     init_config_file()
     agent = get_agent_singleton()
-    logger.info(f"[Startup] Agent initialized, model: {agent.agent}")
+    logger.info(f"[Startup] v1 Agent initialized, model: {agent.agent}")
+
+    # Wire up v2 multi-agent (idempotent: safe if called twice).
+    # Per openspec/feat-multi-agent-integration: setup_v2() registers the
+    # 14 TOOL_REGISTRY entries into the worker's dispatch and warms the
+    # v2 graph singleton so /api/v2/chat can serve requests.
+    try:
+        from src.agents.integration import setup_v2
+        setup_v2()
+        logger.info("[Startup] v2 multi-agent initialized")
+    except Exception as e:
+        # v1 must keep working even if v2 setup fails
+        logger.warning(f"[Startup] v2 setup failed: {e}")
 
 
 @app.get("/")

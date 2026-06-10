@@ -10,6 +10,8 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+from pydantic import BaseModel, Field
+
 from fastapi import APIRouter, UploadFile, File, Form, WebSocket
 from fastapi.responses import JSONResponse
 
@@ -350,3 +352,69 @@ async def ocr_process(
         import traceback
         traceback.print_exc()
         return {"success": False, "error": f"OCR 失败: {str(e)}"}
+
+# ── v2 Multi-Agent endpoints ─────────────────────────────────────────────────
+# Per openspec/feat-multi-agent-integration spec:
+#   POST /api/v2/chat  — run v2 multi-agent graph
+#   GET  /api/v2/health — readiness + tool count
+
+class V2ChatRequest(BaseModel):
+    query: str = Field(..., min_length=1, description="User query to the v2 multi-agent graph")
+    session_id: Optional[str] = Field(default=None, description="Optional session id (not yet persisted)")
+
+
+class V2ChatResponse(BaseModel):
+    query: str
+    session_id: Optional[str] = None
+    tasks: list
+    task_results: list
+    worker_errors: list
+    final_report: str
+    fallback_used: bool
+
+
+@router.get("/api/v2/health")
+async def v2_health():
+    """v2 readiness + tool count. Useful for ops + tests."""
+    from src.agents.integration import is_v2_ready, get_v2_tools_count
+    return {
+        "ready": is_v2_ready(),
+        "tools_registered": get_v2_tools_count(),
+    }
+
+
+@router.post("/api/v2/chat")
+async def v2_chat(req: V2ChatRequest):
+    """Run the v2 multi-agent graph (Planner / Workers / Reporter).
+
+    Coexists with v1 (`/ws/chat`, `/api/process_audio`, etc.).
+    Returns 503 if setup_v2() has not been called (e.g. unit test that
+    forgot to patch the startup).
+    """
+    from src.agents.integration import is_v2_ready
+
+    if not is_v2_ready():
+        return JSONResponse(
+            status_code=503,
+            content={"error": "v2 not initialized, call setup_v2() first"},
+        )
+
+    try:
+        from src.multi_agent_v2 import run_multi_agent
+        state = run_multi_agent(req.query)
+    except Exception as e:
+        logger.exception("v2_chat: graph execution failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"v2 graph failed: {type(e).__name__}: {e}"},
+        )
+
+    return V2ChatResponse(
+        query=req.query,
+        session_id=req.session_id,
+        tasks=state.get("tasks") or [],
+        task_results=state.get("task_results") or [],
+        worker_errors=state.get("worker_errors") or [],
+        final_report=state.get("final_report") or "",
+        fallback_used=bool(state.get("fallback_used", False)),
+    )
