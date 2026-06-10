@@ -7,6 +7,7 @@ import base64
 import logging
 import tempfile
 import shutil
+import asyncio
 from pathlib import Path
 from typing import Optional
 
@@ -400,8 +401,14 @@ async def v2_chat(req: V2ChatRequest):
         )
 
     try:
+        # run_multi_agent() is sync (calls llm.invoke() under the hood).
+        # Running it directly inside an async endpoint would block the
+        # event loop for the duration of every LLM/tool call, freezing
+        # every other request on this worker. asyncio.to_thread() runs
+        # the sync call in the default thread pool and yields control
+        # back to the loop. Response shape is unchanged.
         from src.multi_agent_v2 import run_multi_agent
-        state = run_multi_agent(req.query)
+        state = await asyncio.to_thread(run_multi_agent, req.query)
     except Exception as e:
         logger.exception("v2_chat: graph execution failed")
         return JSONResponse(
