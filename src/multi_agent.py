@@ -183,3 +183,12 @@ def create_multi_agent():
     conn = sqlite3.connect(db_path, check_same_thread=False)
     checkpointer = SqliteSaver(conn)
     return workflow.compile(checkpointer=checkpointer, debug=False)
+
+
+# NOTE: Multi-agent v2 (Planner / Workers / Reporter, issue #4) lives in
+# src/agents/ as separate modules so each can be unit-tested without
+# loading the full LangGraph stack. See:
+#   - src/agents/planner.py
+#   - src/agents/worker.py    (to be added in next TDD cycle)
+#   - src/agents/reporter.py  (to be added in next TDD cycle)
+#   - src/agents/graph.py     (to be added in next TDD cycle - orchestration)
