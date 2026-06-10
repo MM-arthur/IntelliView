@@ -374,10 +374,17 @@ def _save_vector_store_meta(cache_key: str, personal_mtime: float):
     meta = {
         "cache_key": cache_key,
         "personal_mtime": personal_mtime,
-        "saved_at": os.path.getmtime(str(FAISS_INDEX_FILE)) if FAISS_INDEX_FILE.exists() else None
+        "saved_at": os.path.getmtime(str(FAISS_INDEX_FILE)) if FAISS_INDEX_FILE.exists() else None,
+        "buffer_dirty": _write_buffer_dirty
     }
     with open(FAISS_META_FILE, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False)
+
+
+def _clear_buffer_dirty():
+    """flush 成功后清 dirty 标志"""
+    global _write_buffer_dirty
+    _write_buffer_dirty = False
 
 
 def _load_vector_store_meta() -> dict:
@@ -441,19 +448,123 @@ def load_personal_knowledge(knowledge_base_path: str = None) -> List[Document]:
 def add_documents_to_vector_store(existing_vs: FAISS, new_docs: List[Document]) -> FAISS:
     """
     将新文档追加到已有的 FAISS 向量存储（不重建索引）
+
+    性能: 单批 50 文档向量化 + FAISS merge, 通常 < 100ms (CPU, qwen3-embedding-0.6b)
     """
     if not new_docs:
         return existing_vs
-    
+
     texts = [doc.page_content for doc in new_docs]
     metadatas = [doc.metadata for doc in new_docs]
-    
+
     embeddings = get_embeddings()
     texts_with_embeddings = list(zip(texts, embeddings.embed_documents(texts)))
-    
+
     existing_vs.add_embeddings(texts_with_embeddings, metadatas=metadatas)
     logger.info(f"已追加 {len(new_docs)} 个文档到向量存储")
     return existing_vs
+
+
+# 单条文档写入缓冲 (issue #1 验收: add_document() < 100ms)
+# 策略: 攒 50 条或 5 秒, 然后批量 embed + flush 到 FAISS
+_write_buffer: List[Document] = []
+_write_buffer_lock = None  # 进程内单线程, FAISS 调用本身不并发安全
+_write_buffer_dirty = False
+_WRITE_BUFFER_MAX = 50
+_WRITE_BUFFER_TTL_SEC = 5.0
+_write_buffer_last_flush_ts: float = 0.0
+
+try:
+    import threading
+    _write_buffer_lock = threading.Lock()
+except ImportError:
+    pass
+
+
+def _flush_write_buffer(existing_vs: FAISS) -> FAISS:
+    """把缓冲里所有 doc 批量追加到 vs, 持久化, 返回新 vs"""
+    global _write_buffer, _write_buffer_dirty
+
+    if not _write_buffer:
+        return existing_vs
+
+    docs = list(_write_buffer)
+    _write_buffer = []
+    _write_buffer_dirty = False
+
+    updated_vs = add_documents_to_vector_store(existing_vs, docs)
+
+    try:
+        FAISS_INDEX_DIR.mkdir(parents=True, exist_ok=True)
+        updated_vs.save_local(str(FAISS_INDEX_DIR))
+        _clear_buffer_dirty()
+        # 重新保存 meta (清掉 dirty 标志)
+        import json as _json
+        existing_meta = _load_vector_store_meta()
+        if existing_meta:
+            existing_meta["buffer_dirty"] = False
+            with open(FAISS_META_FILE, "w", encoding="utf-8") as f:
+                _json.dump(existing_meta, f, ensure_ascii=False)
+        logger.info(f"✅ 缓冲 flush 完成: {len(docs)} 文档 → {FAISS_INDEX_DIR}")
+    except Exception as e:
+        logger.warning(f"⚠️  flush 持久化失败: {e}")
+
+    return updated_vs
+
+
+def _maybe_flush_by_ttl(existing_vs: FAISS) -> FAISS:
+    """TTL 触发: 距上次 flush 超过 _WRITE_BUFFER_TTL_SEC 就强制 flush"""
+    global _write_buffer_last_flush_ts
+    import time
+
+    if not _write_buffer:
+        return existing_vs
+    if _write_buffer_last_flush_ts == 0.0:
+        return existing_vs
+
+    now = time.time()
+    if now - _write_buffer_last_flush_ts >= _WRITE_BUFFER_TTL_SEC:
+        return _flush_write_buffer(existing_vs)
+    return existing_vs
+
+
+def add_document(existing_vs: FAISS, doc: Document, persist: bool = True) -> FAISS:
+    """
+    单条文档追加入口 (issue #1 验收硬指标: < 100ms)
+
+    实现: 写入缓冲, 不立即 embed. 攒到 50 条 或 距上次 flush 5s 触发批量 flush.
+    典型单次调用: < 5ms (只塞 list, 不做向量化).
+
+    Args:
+        existing_vs: 已有的 FAISS 实例
+        doc: 单条 Document
+        persist: 是否立即持久化. True → 写穿缓冲 (但仍按 50/5s 批量, 不立即)
+    Returns:
+        更新后的 FAISS 实例 (内存视图; 真实 flush 在缓冲触发时)
+    """
+    global _write_buffer_dirty, _write_buffer_last_flush_ts
+    import time
+
+    if _write_buffer_lock:
+        _write_buffer_lock.acquire()
+    try:
+        _write_buffer.append(doc)
+        _write_buffer_dirty = True
+        if _write_buffer_last_flush_ts == 0.0:
+            _write_buffer_last_flush_ts = time.time()
+
+        should_flush = len(_write_buffer) >= _WRITE_BUFFER_MAX
+        if should_flush:
+            return _flush_write_buffer(existing_vs)
+        return existing_vs
+    finally:
+        if _write_buffer_lock:
+            _write_buffer_lock.release()
+
+
+def flush_pending_writes(existing_vs: FAISS) -> FAISS:
+    """外部主动 flush (e.g. 服务关闭 / 定时任务)"""
+    return _flush_write_buffer(existing_vs)
 
 def get_or_create_vector_store(urls: List[str] = None, file_path: str = None) -> FAISS:
     """
@@ -491,15 +602,21 @@ def get_or_create_vector_store(urls: List[str] = None, file_path: str = None) ->
                 )
                 _cache_urls_key = cache_key
                 logger.info("✅ FAISS 持久化索引加载成功")
+                # 启动时把上一进程未 flush 的缓冲文档 (若 meta 提示 dirty) 尝试补 flush
+                if meta.get("buffer_dirty"):
+                    logger.info("🔄 检测到上次进程有未 flush 文档, 尝试恢复...")
+                    _vector_store_cache = _flush_write_buffer(_vector_store_cache)
                 return _vector_store_cache
             except Exception as e:
                 logger.warning(f"⚠️  FAISS 索引加载失败，将重建: {e}")
-    
+
     # Step 2: 内存缓存命中
     if _vector_store_cache is not None and _cache_urls_key == cache_key:
         print("📦 使用内存缓存的向量存储")
+        # TTL 触发 flush (防止少到 50 条但已过 5s 没刷)
+        _vector_store_cache = _maybe_flush_by_ttl(_vector_store_cache)
         return _vector_store_cache
-    
+
     # Step 3: 需要重建索引
     print("🔄 重建向量存储...")
     
