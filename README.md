@@ -188,7 +188,36 @@ graph LR
 - **Parallelism**: each Worker runs independently via langgraph `Send`; results join at the Reporter.
 - **Retries**: each Worker retries its tool 3× before falling back to `web_search`.
 - **Coexistence**: v1 (`get_singleton_agent`) and v2 (`get_singleton_multi_agent_v2`) are both available; the old 15-node graph is untouched.
-- **Tests**: 60/60 unit + integration tests pass (see `tests/`).
+- **Tests**: 74/74 unit + integration tests pass (see `tests/`) — 60 framework + 14 production-integration.
+
+### Enabling v2 in production
+
+`src/agents/integration.py` wires the v2 framework to the FastAPI app. `setup_v2()` is called automatically from `src/main.py`'s startup event:
+
+```python
+from src.agents.integration import setup_v2, is_v2_ready, get_v2_tools_count
+setup_v2()       # registers TOOL_REGISTRY into worker dispatch + warms singleton
+is_v2_ready()    # True
+get_v2_tools_count()  # 14
+```
+
+**Endpoints** (added in `src/routes/rest.py`):
+- `GET  /api/v2/health` — `{"ready": true, "tools_registered": 14}`
+- `POST /api/v2/chat`  — body `{"query": "...", "session_id": "..."}` → `{"query", "tasks", "task_results", "worker_errors", "final_report", "fallback_used"}`
+
+**Manual verification:**
+
+```bash
+curl -s http://localhost:8000/api/v2/health
+# {"ready":true,"tools_registered":14}
+
+curl -s -X POST http://localhost:8000/api/v2/chat \
+  -H "Content-Type: application/json" \
+  -d '{"query": "你好", "session_id": "s1"}'
+# {"query":"你好", "tasks":[…], "final_report": "# Multi-Agent Report\n**Summary**: 1/1 …", …}
+```
+
+The v1 endpoints (`/ws/chat`, `/api/process_audio`, `/api/analyze_behavior`, etc.) are untouched and continue to work as before.
 
 ---
 
@@ -416,5 +445,6 @@ POST /api/reset_conversation   # Reset conversation
 - **2026.04** Nova joined as contributor
 - **2026.06** Vega joined as contributor
 - **2026.06** Multi-Agent v2 shipped (issue #4): Planner / Workers×N / Reporter with Send-based parallel dispatch; 14 v1 nodes re-exposed as Tools; v1 graph preserved for backward compat (commit `c1a249e`)
+- **2026.06** Multi-Agent v2 wired to production: Tool registry → worker dispatch, `setup_v2()` startup hook, `POST /api/v2/chat` + `GET /api/v2/health` endpoints; 74/74 tests pass
 
 *Arthur · Nova · Vega · MiniMax-M3*
