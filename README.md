@@ -2,7 +2,8 @@
 
 > Fear no interview, AI accompanies you throughout.
 > A **LangGraph**-powered intelligent interview assistant, handling interviewers in real-time, supporting multi-round mock interviews, post-interview reviews, and career planning.
-> Single Agent + session isolation + streaming event-driven architecture.
+> **v1** Single Agent + session isolation + streaming event-driven architecture.
+> **v2** Multi-Agent v2 (Planner / Workers×N / Reporter) — same inputs, richer output, parallel tool dispatch via Send.
 
 **Developed with Claude Code &middot; OpenClaw contributes as a personal assistant · Hermes Agent contributes as a personal assistant**
 
@@ -27,6 +28,7 @@
 | 🔍 **Real-time Search** | Tavily API for the latest knowledge |
 | 💾 **Session Persistence** | SqliteSaver, conversation history survives restarts |
 | 🔗 **AG-UI Protocol** | Standard Agent-User Interaction Protocol, supports multi-Agent extension |
+| 🤖 **Multi-Agent v2** | Planner splits query into 1-5 sub-tasks, Workers run them in parallel via Send, Reporter aggregates Markdown report (issue #4) |
 
 ---
 
@@ -160,6 +162,34 @@ graph TD
     style MOCK_LOOP fill:#ff9800,color:#fff
 ```
 
+### Multi-Agent v2 (Planner / Workers / Reporter)
+
+A second, **additive** graph lives in `src/agents/`. It re-uses the v1 nodes as **Tool wrappers** but orchestrates them through a three-stage pipeline:
+
+```mermaid
+graph LR
+    START([User Query]) --> PLANNER[Planner<br/>LLM splits to 1-5 tasks]
+    PLANNER -->|Send t1, t2, ..., tN| W1[Worker 1]
+    PLANNER -->|Send t1, t2, ..., tN| W2[Worker 2]
+    PLANNER -->|Send t1, t2, ..., tN| W3[Worker 3]
+    W1 --> REPORTER[Reporter<br/>aggregate Markdown]
+    W2 --> REPORTER
+    W3 --> REPORTER
+    REPORTER --> END([final_report])
+
+    style PLANNER fill:#4a90d9,color:#fff
+    style W1 fill:#51cf66,color:#fff
+    style W2 fill:#51cf66,color:#fff
+    style W3 fill:#51cf66,color:#fff
+    style REPORTER fill:#8b5cf6,color:#fff
+```
+
+**Key properties:**
+- **Parallelism**: each Worker runs independently via langgraph `Send`; results join at the Reporter.
+- **Retries**: each Worker retries its tool 3× before falling back to `web_search`.
+- **Coexistence**: v1 (`get_singleton_agent`) and v2 (`get_singleton_multi_agent_v2`) are both available; the old 15-node graph is untouched.
+- **Tests**: 60/60 unit + integration tests pass (see `tests/`).
+
 ---
 
 ## Quick Start
@@ -223,7 +253,14 @@ Interface uses **Apple Design System** visual language:
 ```
 src/
 ├── main.py              # FastAPI entry (route registration + CORS + startup)
-├── multi_agent.py       # LangGraph definition (11 nodes)
+├── multi_agent.py       # v1 LangGraph definition (15 nodes, unchanged)
+├── multi_agent_v2.py    # v2 entry points (run_multi_agent, astream_multi_agent)
+├── agents/              # v2 Multi-Agent architecture
+│   ├── planner.py       # Planner: LLM splits query into 1-5 sub-tasks
+│   ├── worker.py        # Worker: route to tool, retry 3x, fallback
+│   ├── reporter.py      # Reporter: aggregate results into Markdown
+│   ├── tools.py         # 14 Tool wrappers (v1 nodes re-exposed as Tools)
+│   └── graph.py         # StateGraph: planner -> Send -> workers -> reporter
 ├── skill_manager.py   # Unified Skill loading (supports DeerFlow workflow/calls/sub_agents)
 ├── mcp_client.py       # MCP tool client
 ├── routes/             # Route modules (split from main.py)
@@ -231,12 +268,12 @@ src/
 │   └── websocket.py    # WebSocket chat handler
 ├── core/               # Core modules
 │   ├── session_manager.py  # SessionManager + AgentSingleton singleton
-│   ├── state.py           # AgentState definition
+│   ├── state.py           # AgentState definition (incl. multi-agent fields)
 │   ├── llm.py             # LLM configuration
 │   └── retry.py           # Retry mechanism
 ├── memory/             # Evaluation history memory system
 │   └── evaluation_memory.py  # Topic scores / trends / improvement suggestions
-├── nodes/              # Node implementations
+├── nodes/              # v1 node implementations
 │   ├── career_intents.py # Mock interview / review / career planning
 │   └── ...              # preprocessing / routing / generation
 ├── rag/
@@ -244,6 +281,23 @@ src/
 └── ui/
     └── index.html     # Apple style frontend (Vue 3)
 ```
+
+### Tests
+
+```
+tests/
+├── conftest.py              # pytest fixtures (FakeLLM, FakeLLMResponse)
+├── test_state.py            # AgentState multi-agent fields
+├── test_planner.py          # Planner: split, cap, fallback
+├── test_worker.py           # Worker: routing, retry, fallback
+├── test_reporter.py         # Reporter: aggregate, partial fail, markdown
+├── test_tools.py            # 14 Tool wrappers (behavior equivalence)
+├── test_graph.py            # Subgraph + Send orchestration
+├── test_multi_agent_v2.py   # v2 entry points (run_multi_agent e2e)
+└── test_regression.py       # Old v1 graph integrity + v2 isolation
+```
+
+**Run all tests:** `python3 -m pytest tests/` → **60/60 pass**
 
 ---
 
@@ -361,5 +415,6 @@ POST /api/reset_conversation   # Reset conversation
 
 - **2026.04** Nova joined as contributor
 - **2026.06** Vega joined as contributor
+- **2026.06** Multi-Agent v2 shipped (issue #4): Planner / Workers×N / Reporter with Send-based parallel dispatch; 14 v1 nodes re-exposed as Tools; v1 graph preserved for backward compat (commit `c1a249e`)
 
 *Arthur · Nova · Vega · MiniMax-M3*
