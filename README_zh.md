@@ -162,6 +162,37 @@ graph TD
 
 ---
 
+## 在生产环境启用 v2
+
+`src/agents/integration.py` 把 v2 框架接到 FastAPI 应用。`setup_v2()` 会在 `src/main.py` 的 startup 事件中自动调用：
+
+```python
+from src.agents.integration import setup_v2, is_v2_ready, get_v2_tools_count
+setup_v2()            # 把 TOOL_REGISTRY 注册到 worker dispatch + 预热 singleton
+is_v2_ready()         # True
+get_v2_tools_count()  # 14
+```
+
+**端点**（加在 `src/routes/rest.py`）：
+- `GET  /api/v2/health` — 返回 `{"ready": true, "tools_registered": 14}`
+- `POST /api/v2/chat`  — body 为 `{"query": "...", "session_id": "..."}`，返回 `{query, tasks, task_results, worker_errors, final_report, fallback_used}`
+
+**手动验证：**
+
+```bash
+curl -s http://localhost:8000/api/v2/health
+# {"ready":true,"tools_registered":14}
+
+curl -s -X POST http://localhost:8000/api/v2/chat \
+  -H "Content-Type: application/json" \
+  -d '{"query": "你好", "session_id": "s1"}'
+# {"query":"你好", "tasks":[…], "final_report": "# Multi-Agent Report\n**Summary**: 1/1 …", …}
+```
+
+v1 端点（`/ws/chat`、`/api/process_audio`、`/api/analyze_behavior` 等）保持不变，与 v2 并存运行。
+
+---
+
 ## 快速启动
 
 ```bash
@@ -361,5 +392,7 @@ POST /api/reset_conversation   # 重置会话
 
 - **2026.04** Nova 加入贡献
 - **2026.06** Vega 加入贡献
+- **2026.06** Multi-Agent v2 上线（issue #4）：Planner / Workers×N / Reporter 架构，Send API 并行调度，14 个原 v1 节点以 Tool 形式复用，v1 图保持向后兼容（commit `c1a249e`）
+- **2026.06** Multi-Agent v2 接入生产：Tool 注册表 → worker 派发表，`setup_v2()` 启动钩子，`POST /api/v2/chat` + `GET /api/v2/health` 端点；74/74 测试通过
 
 *Arthur · Nova · Vega · MiniMax-M3*
