@@ -164,29 +164,168 @@ graph TD
 
 ### Multi-Agent v2 (Planner / Workers / Reporter)
 
-A second, **additive** graph lives in `src/agents/`. It re-uses the v1 nodes as **Tool wrappers** but orchestrates them through a three-stage pipeline:
+A second, **additive** graph lives in `src/agents/`. It re-uses the v1 nodes as **Tool wrappers** but orchestrates them through a three-stage pipeline built on **Plan-and-Execute + Send API + Subgraph + ReAct** — the engineering blueprint for production-grade multi-agent systems.
+
+#### Why this design? (Methodology — the 6 building blocks)
+
+| Block | Role | Why it matters |
+|---|---|---|
+| **Plan-and-Execute** | Top-level serial orchestration (Planner → Worker subgraph → Reporter) | Plan once at the start, avoid re-planning every step → cheaper + more stable |
+| **Send API** | Parallel fan-out — Planner dispatches N Worker subgraphs in parallel | Independent tasks run simultaneously → N× speedup; no explicit "is plan done?" check needed |
+| **Subgraph** | Worker logic packaged as a single node from the main graph's POV | Encapsulation + state isolation + reusability across Send dispatches |
+| **ReAct (via conditional edges)** | Inside Worker subgraph: observe → act → observe → loop | Dynamic tool selection without hard-coding the flow |
+| **Pydantic State** | Type-safe state schema + business methods (`plan.is_complete`, `plan.next_task`) | Type safety + business semantics instead of magic-string `if status == "done"` |
+| **AG-UI Protocol** | Frontend ↔ backend streaming events | Standardized, future-ready for multi-agent extension |
+
+#### Architecture (three-layer containment)
 
 ```mermaid
-graph LR
-    START([User Query]) --> PLANNER[Planner<br/>LLM splits to 1-5 tasks]
-    PLANNER -->|Send t1, t2, ..., tN| W1[Worker 1]
-    PLANNER -->|Send t1, t2, ..., tN| W2[Worker 2]
-    PLANNER -->|Send t1, t2, ..., tN| W3[Worker 3]
-    W1 --> REPORTER[Reporter<br/>aggregate Markdown]
-    W2 --> REPORTER
-    W3 --> REPORTER
+graph TD
+    START([User Query]) --> PLANNER[planner_node<br/>LLM splits into 1-5 tasks]
+    PLANNER -->|Send t1| WSG1[worker_subgraph #1<br/>coding]
+    PLANNER -->|Send t2| WSG2[worker_subgraph #2<br/>system design]
+    PLANNER -->|Send t3| WSG3[worker_subgraph #3<br/>communication]
+    PLANNER -->|Send tN| WSGN[worker_subgraph #N<br/>project / learning]
+
+    subgraph WorkerInternal [worker_subgraph (internal — main graph sees this as 1 node)]
+        direction LR
+        WSTART([subgraph START]) --> WN[worker_node<br/>ReAct loop: observe → tool → observe]
+        WN -->|continue| WN
+        WN -->|all subtasks done| WEND([subgraph END])
+    end
+
+    WSG1 --- WorkerInternal
+    WSG2 --- WorkerInternal
+    WSG3 --- WorkerInternal
+    WSGN --- WorkerInternal
+
+    WSG1 --> REPORTER[reporter_node<br/>aggregate Markdown]
+    WSG2 --> REPORTER
+    WSG3 --> REPORTER
+    WSGN --> REPORTER
     REPORTER --> END([final_report])
 
     style PLANNER fill:#4a90d9,color:#fff
-    style W1 fill:#51cf66,color:#fff
-    style W2 fill:#51cf66,color:#fff
-    style W3 fill:#51cf66,color:#fff
+    style WSG1 fill:#51cf66,color:#fff
+    style WSG2 fill:#51cf66,color:#fff
+    style WSG3 fill:#51cf66,color:#fff
+    style WSGN fill:#51cf66,color:#fff
     style REPORTER fill:#8b5cf6,color:#fff
+    style WN fill:#ff9800,color:#fff
 ```
 
-**Key properties:**
+**Three-layer containment hierarchy:**
+
+- **Layer 1 — Main graph**: 3 nodes (`planner_node`, `worker_subgraph` as 1 node, `reporter_node`).
+- **Layer 2 — Worker subgraph**: 1 internal node (`worker_node`).
+- **Layer 3 — Within worker_node**: conditional-edge self-loop = ReAct pattern.
+
+**The main graph sees `worker_subgraph` as a single node** — it does not know the internal ReAct loop exists. This is the **subgraph-as-node encapsulation principle**.
+
+#### Code Blueprint
+
+**1. State schema** (Pydantic — type safety + business semantics):
+
+```python
+from pydantic import BaseModel
+from typing import Literal
+
+class EvalTask(BaseModel):
+    id: int
+    dimension: Literal["coding", "system_design", "communication", "project", "learning"]
+    status: Literal["pending", "done"] = "pending"
+    score: float | None = None
+    evidence: str | None = None
+
+class Plan(BaseModel):
+    tasks: list[EvalTask]
+
+    @property
+    def is_complete(self) -> bool:
+        return all(t.status == "done" for t in self.tasks)
+
+    @property
+    def next_task(self) -> EvalTask | None:
+        return next((t for t in self.tasks if t.status != "done"), None)
+```
+
+**2. Planner node** (LLM splits the user query into 1–5 tasks):
+
+```python
+def planner_node(state):
+    plan = llm_split_into_tasks(state["query"], max_tasks=5)
+    return {"plan": plan}
+```
+
+**3. Worker subgraph** (ReAct loop inside, via conditional edge):
+
+```python
+from langgraph.graph import StateGraph, END, START
+
+def worker_node(state):
+    # ReAct: reason about current task → call a tool → observe result
+    new_evidence = react_step(state["task"], state["candidate"])
+    return {"evidence": state["evidence"] + [new_evidence]}
+
+def should_continue(state):
+    # Conditional edge — loop until enough evidence is collected
+    return "end" if len(state["evidence"]) >= 3 else "continue"
+
+worker_subgraph = StateGraph(WorkerState)
+worker_subgraph.add_node("worker_node", worker_node)
+worker_subgraph.add_conditional_edges(
+    "worker_node", should_continue,
+    {"continue": "worker_node", "end": END}
+)
+worker_subgraph.add_edge(START, "worker_node")
+compiled_worker = worker_subgraph.compile()
+```
+
+**4. Main graph** (Send API for parallel fan-out):
+
+```python
+from langgraph.constants import Send
+
+def dispatch_workers(state):
+    """Fan-out: dispatch one subgraph instance per pending task."""
+    return [
+        Send("worker_subgraph", {"task": task, "candidate": state["candidate"]})
+        for task in state["plan"].tasks
+        if task.status != "done"
+    ]
+
+main_graph = StateGraph(MainState)
+main_graph.add_node("planner_node", planner_node)
+main_graph.add_node("worker_subgraph", compiled_worker)   # Subgraph as a node
+main_graph.add_node("reporter_node", reporter_node)
+
+main_graph.add_edge(START, "planner_node")
+main_graph.add_conditional_edges(
+    "planner_node",
+    dispatch_workers,                # Send API
+    ["worker_subgraph"]
+)
+main_graph.add_edge("worker_subgraph", "reporter_node")  # Fan-in: all subgraphs converge here
+main_graph.add_edge("reporter_node", END)
+```
+
+#### What happens at runtime
+
+```
+1. planner_node runs ONCE  → splits query into 1-5 tasks
+2. dispatch_workers returns N Send objects
+3. N worker_subgraph instances launch IN PARALLEL
+   - Each instance's worker_node loops ReAct-style
+   - Each calls different tools (RAG, web search, behavior analysis, …)
+4. When ALL subgraph instances finish → fan-in to reporter_node
+5. reporter_node aggregates results → final_report
+```
+
+#### Key properties
+
 - **Parallelism**: each Worker runs independently via langgraph `Send`; results join at the Reporter.
 - **Retries**: each Worker retries its tool 3× before falling back to `web_search`.
+- **Encapsulation**: main graph sees `worker_subgraph` as a single node — internal ReAct loop is invisible to Planner/Reporter.
 - **Coexistence**: v1 (`get_singleton_agent`) and v2 (`get_singleton_multi_agent_v2`) are both available; the old 15-node graph is untouched.
 - **Tests**: 74/74 unit + integration tests pass (see `tests/`) — 60 framework + 14 production-integration.
 
