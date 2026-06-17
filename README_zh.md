@@ -162,6 +162,175 @@ graph TD
 
 ---
 
+### Multi-Agent v2 (Planner / Workers / Reporter)
+
+第二个**叠加式**图位于 `src/agents/`。它把 v1 节点复用为 **Tool 包装器**，但通过基于 **Plan-and-Execute + Send API + Subgraph + ReAct** 的三阶段流水线进行编排 —— 这是生产级多智能体系统的工程蓝图。
+
+#### 为什么要这样设计？（方法论 —— 六件套）
+
+| 组件 | 角色 | 为什么重要 |
+|---|---|---|
+| **Plan-and-Execute** | 顶层串行编排（Planner → Worker subgraph → Reporter） | 一次性规划，避免每步重规划 → 更便宜 + 更稳定 |
+| **Send API** | 并行扇出 —— Planner 并行派发 N 个 Worker subgraph | 独立任务同时跑 → N 倍提速；不需要显式的"plan 完成?"判断 |
+| **Subgraph** | Worker 逻辑封装成主图视角的 1 个 node | 封装 + 状态隔离 + 跨 Send 派发可复用 |
+| **ReAct（通过条件边）** | Worker subgraph 内部：观察 → 行动 → 观察 → 循环 | 动态选工具，无需写死流程 |
+| **Pydantic State** | 类型安全的状态 schema + 业务方法（`plan.is_complete`、`plan.next_task`） | 类型安全 + 业务语义，代替魔法字符串 `if status == "done"` |
+| **AG-UI 协议** | 前后端流式事件 | 标准化、面向未来多 Agent 扩展 |
+
+#### 架构（三层包含关系）
+
+```mermaid
+graph TD
+    START([用户查询]) --> PLANNER[planner_node<br/>LLM 拆成 1-5 个任务]
+    PLANNER -->|Send t1| WSG1[worker_subgraph #1<br/>编程]
+    PLANNER -->|Send t2| WSG2[worker_subgraph #2<br/>系统设计]
+    PLANNER -->|Send t3| WSG3[worker_subgraph #3<br/>沟通]
+    PLANNER -->|Send tN| WSGN[worker_subgraph #N<br/>项目 / 学习]
+
+    subgraph WorkerInternal [worker_subgraph（内部 —— 主图看是 1 个 node）]
+        direction LR
+        WSTART([subgraph START]) --> WN[worker_node<br/>ReAct 循环：观察 → 工具 → 观察]
+        WN -->|continue| WN
+        WN -->|all subtasks done| WEND([subgraph END])
+    end
+
+    WSG1 --- WorkerInternal
+    WSG2 --- WorkerInternal
+    WSG3 --- WorkerInternal
+    WSGN --- WorkerInternal
+
+    WSG1 --> REPORTER[reporter_node<br/>聚合 Markdown]
+    WSG2 --> REPORTER
+    WSG3 --> REPORTER
+    WSGN --> REPORTER
+    REPORTER --> END([final_report])
+
+    style PLANNER fill:#4a90d9,color:#fff
+    style WSG1 fill:#51cf66,color:#fff
+    style WSG2 fill:#51cf66,color:#fff
+    style WSG3 fill:#51cf66,color:#fff
+    style WSGN fill:#51cf66,color:#fff
+    style REPORTER fill:#8b5cf6,color:#fff
+    style WN fill:#ff9800,color:#fff
+```
+
+**三层包含关系：**
+
+- **第 1 层 —— 主图**：3 个 node（`planner_node`、`worker_subgraph` 作为 1 个 node、`reporter_node`）。
+- **第 2 层 —— Worker subgraph**：1 个内部 node（`worker_node`）。
+- **第 3 层 —— worker_node 内部**：条件边自循环 = ReAct 模式。
+
+**主图把 `worker_subgraph` 看作 1 个 node** —— 不知道内部 ReAct 循环的存在。这就是 **subgraph-as-node 封装原则**。
+
+#### 代码蓝图
+
+**1. State schema**（Pydantic —— 类型安全 + 业务语义）：
+
+```python
+from pydantic import BaseModel
+from typing import Literal
+
+class EvalTask(BaseModel):
+    id: int
+    dimension: Literal["编程", "系统设计", "沟通", "项目", "学习"]
+    status: Literal["pending", "done"] = "pending"
+    score: float | None = None
+    evidence: str | None = None
+
+class Plan(BaseModel):
+    tasks: list[EvalTask]
+
+    @property
+    def is_complete(self) -> bool:
+        return all(t.status == "done" for t in self.tasks)
+
+    @property
+    def next_task(self) -> EvalTask | None:
+        return next((t for t in self.tasks if t.status != "done"), None)
+```
+
+**2. Planner node**（LLM 把用户查询拆成 1–5 个任务）：
+
+```python
+def planner_node(state):
+    plan = llm_split_into_tasks(state["query"], max_tasks=5)
+    return {"plan": plan}
+```
+
+**3. Worker subgraph**（内部 ReAct 循环，通过条件边）：
+
+```python
+from langgraph.graph import StateGraph, END, START
+
+def worker_node(state):
+    # ReAct：思考当前任务 → 调工具 → 观察结果
+    new_evidence = react_step(state["task"], state["candidate"])
+    return {"evidence": state["evidence"] + [new_evidence]}
+
+def should_continue(state):
+    # 条件边 —— 循环到收集足够证据
+    return "end" if len(state["evidence"]) >= 3 else "continue"
+
+worker_subgraph = StateGraph(WorkerState)
+worker_subgraph.add_node("worker_node", worker_node)
+worker_subgraph.add_conditional_edges(
+    "worker_node", should_continue,
+    {"continue": "worker_node", "end": END}
+)
+worker_subgraph.add_edge(START, "worker_node")
+compiled_worker = worker_subgraph.compile()
+```
+
+**4. 主图**（用 Send API 并行扇出）：
+
+```python
+from langgraph.constants import Send
+
+def dispatch_workers(state):
+    """扇出：为每个 pending 任务派发一个 subgraph 实例。"""
+    return [
+        Send("worker_subgraph", {"task": task, "candidate": state["candidate"]})
+        for task in state["plan"].tasks
+        if task.status != "done"
+    ]
+
+main_graph = StateGraph(MainState)
+main_graph.add_node("planner_node", planner_node)
+main_graph.add_node("worker_subgraph", compiled_worker)   # subgraph 作为 node
+main_graph.add_node("reporter_node", reporter_node)
+
+main_graph.add_edge(START, "planner_node")
+main_graph.add_conditional_edges(
+    "planner_node",
+    dispatch_workers,                # Send API
+    ["worker_subgraph"]
+)
+main_graph.add_edge("worker_subgraph", "reporter_node")  # 扇入：所有 subgraph 汇聚
+main_graph.add_edge("reporter_node", END)
+```
+
+#### 运行时实际发生什么
+
+```
+1. planner_node 跑一次  → 把 query 拆成 1-5 个任务
+2. dispatch_workers 返回 N 个 Send 对象
+3. N 个 worker_subgraph 实例并行启动
+   - 每个实例的 worker_node ReAct 循环
+   - 每个实例调用不同工具（RAG、网页搜索、行为分析 ...）
+4. 所有 subgraph 实例完成后 → 扇入到 reporter_node
+5. reporter_node 聚合结果 → final_report
+```
+
+#### 关键特性
+
+- **并行**：每个 Worker 通过 langgraph `Send` 独立运行，结果在 Reporter 汇合。
+- **重试**：每个 Worker 重试工具 3 次，然后降级到 `web_search`。
+- **封装**：主图把 `worker_subgraph` 看作 1 个 node —— Planner/Reporter 看不到内部 ReAct 循环。
+- **共存**：v1（`get_singleton_agent`）和 v2（`get_singleton_multi_agent_v2`）都可用；旧版 15 节点图未动。
+- **测试**：74/74 单元 + 集成测试通过（见 `tests/`）—— 60 框架 + 14 生产集成。
+
+---
+
 ## 在生产环境启用 v2
 
 `src/agents/integration.py` 把 v2 框架接到 FastAPI 应用。`setup_v2()` 会在 `src/main.py` 的 startup 事件中自动调用：
