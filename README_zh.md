@@ -2,7 +2,7 @@
 
 > 不再害怕面试，AI 全程护航。
 
-**当前形态**：基于 **QwenPaw 插件（二开）** 的 AI 面试助手，支持模拟面试 / 面试复盘 / 职业规划 / 问答。
+**当前形态**：基于 **QwenPaw 插件（二开）** 的 AI 面试助手，支持模拟面试（通用 / JD 定制 / 压力面）/ 面试复盘 / 职业规划 / 问答，v0.2 起带**持久化面试档案**（数据基座）。
 
 > 本文档既是**产品介绍**，也是本项目的**技术迭代史**与 **Agent 协作记录**——记录它如何从自研 LangGraph 演进到 QwenPaw 插件，以及每个 Agent 在什么阶段加入、写了什么代码、参与了哪些模型。
 
@@ -31,6 +31,12 @@
 | 能力 | 状态 | 说明 |
 |------|------|------|
 | 🤝 模拟面试 | ✅ 当前可用 | 多轮追问，结束时输出结构化评分报告 |
+| 💾 面试档案与画像 | ✅ v0.2 可用 | 每次面试落盘 JSON+MD；跨会话画像含高频弱点记忆与进步曲线 |
+| 📚 JD 定制题库 | ✅ v0.2 可用 | 粘贴 JD → 针对性题库，自动激活供下次模拟面试出题 |
+| 🔥 压力面 / 深挖模式 | ✅ v0.2 可用 | 追问阶梯（定义 → 边界 → 对比 → 失败 → 量级）直到暴露知识边界 |
+| 📊 HTML 可视化报告卡 | ✅ v0.2 可用 | 自包含页面：雷达图 + 能力卡片 + 弱点清单 + 历史趋势线 |
+| 📜 面试历史 | ✅ v0.2 可用 | 历次面试档案 + 均分曲线与五维对比 |
+| 🃏 错题特训 | ✅ v0.3 可用 | 答错/低分题（≤6/10）自动进错题卡，1→3→7→14 天间隔重复；到期错题每轮对话自动催练；换角度出题 + 60 秒限时作答 |
 | 📋 面试复盘 | ✅ 当前可用 | 技术 / 项目 / 表达 / 优缺点 / 改进建议 |
 | 🧭 职业规划 | ✅ 当前可用 | 优势分析 / 目标定位 / 短中长期路径 |
 | 💬 普通问答 | ✅ 当前可用 | 以 Arthur 身份回答面试官问题 |
@@ -51,18 +57,19 @@
 
 ```
 intelliview-plugin/
-├── plugin.json                 # 插件清单（声明 tools/storage/logging/prompts/skills 能力）
-├── main.py                     # Plugin 类：注册 skills / persona prompt / 评分工具
-└── skills/intelliview/SKILL.md # 意图路由 + 四种模式（模拟面试/复盘/职业规划/问答）
+├── plugin.json                 # 插件清单（声明 tools/storage/logging/prompts/skills/hooks 能力）
+├── main.py                     # Plugin 类：画像注入钩子 + 9 个面试工具
+├── skills/intelliview/SKILL.md # 意图路由 + 八种模式（通用/JD/压力面/错题特训/复盘/历史/规划/问答）
 ```
 
-插件在宿主启动时注册三类贡献（已在运行时验证）：
+插件在宿主启动时注册四类贡献（已在运行时验证）：
 
 | 贡献 | 说明 |
 |------|------|
-| **Skill** | `SKILL.md` 描述四种模式的工作流，装入 `default` 与 `QwenPaw_QA_Agent_0.2` 两个 workspace |
+| **Skill** | `SKILL.md` 描述八种模式的工作流，装入 `default` 与 `QwenPaw_QA_Agent_0.2` 两个 workspace |
 | **Prompt** | `intelliview_persona`（priority=90）注入 Arthur 人设 |
-| **Tool** | `generate_interview_report`（确定性评分格式化），注入各 workspace 的 ToolRegistry |
+| **Hook** | `PRE_DISPATCH` 每轮对话自动注入精简用户画像（最弱维度 / 高频弱点 / 目标岗位）**与到期错题提醒** |
+| **Tools** | `save_interview_session` · `load_user_profile` · `generate_interview_report`（五维 1-10 评分 + 历史对比） · `build_question_bank` · `list_interview_history` · `render_report_card`（HTML 雷达图 + 趋势线） · `create_error_card` · `drill_weaknesses`（换角度出题 + 60 秒限时） · `update_error_card`（间隔重复 1→3→7→14 天） |
 
 ### 为什么"核心对话"的实现这么简单
 
@@ -223,6 +230,8 @@ graph TD
 - **2026.06** Multi-Agent v2 上线（issue #4）：Planner / Workers×N / Reporter，Send API 并行调度，14 个 v1 节点以 Tool 复用（commit `c1a249e`）
 - **2026.06** Multi-Agent v2 接入生产：`setup_v2()` 启动钩子，`/api/v2/chat` + `/api/v2/health`，74/74 测试通过
 - **2026.11** QwenPaw 插件二开：删除 LangGraph 技术栈，核心对话迁移为插件
+- **2026.11** 插件 v0.2 数据基座：面试档案 + 画像钩子 + JD 题库 + HTML 报告卡（6 个工具，8/8 本地自检通过）
+- **2026.11** 插件 v0.3 错题闭环：低分题自动进错题卡，到期钩子催练，换角度出题 + 60 秒限时特训（9 个工具，11/11 本地自检通过）
 
 ---
 

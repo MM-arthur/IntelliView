@@ -23,3 +23,7 @@ skills/_registry.json
 yolov8n.pt
 scripts/
 exp/
+# 本地演示产物（demo 报告卡、截图），不入库
+.screenshots/
+# 本地测试/自检脚本，不入库
+tests/

@@ -2,7 +2,7 @@
 
 > Never fear interviews again; AI escorts you the whole way.
 
-**Current form**: an AI interview assistant rebuilt as a **QwenPaw plugin (fork)**, supporting mock interviews / interview review / career planning / Q&A.
+**Current form**: an AI interview assistant rebuilt as a **QwenPaw plugin (fork)**, supporting mock interviews (generic / JD-based / pressure), interview review / career planning / Q&A — now with a **persistent interview archive** (v0.2 data foundation).
 
 > This document is both a **product introduction** and a record of the project's **technical evolution** and **agent collaboration** — from a self-built LangGraph stack to a QwenPaw plugin, and which agent joined when, wrote what, and touched which models.
 
@@ -19,6 +19,12 @@
 | Capability | Status | Notes |
 |------|------|------|
 | 🤝 Mock interview | ✅ available | multi-round, with a structured scoring report |
+| 💾 Interview archive & profile | ✅ available (v0.2) | every interview saved as JSON+MD; cross-session profile with weakness memory and progress trend |
+| 📚 JD-based question bank | ✅ available (v0.2) | paste a JD → targeted question bank, activated for the next mock interview |
+| 🔥 Pressure / deep-dig mode | ✅ available (v0.2) | follow-up ladder (definition → boundary → comparison → failure → scale) until the knowledge boundary is exposed |
+| 📊 HTML report card | ✅ available (v0.2) | self-contained page: radar chart + ability cards + weakness list + historical trend line |
+| 📜 Interview history | ✅ available (v0.2) | all past sessions with per-dimension scores and a sparkline trend |
+| 🃏 Error-card drills | ✅ available (v0.3) | failed questions (≤6/10) auto-become spaced-repetition cards (1→3→7→14d); due cards nagged in every conversation; drills use variant questions + 60-second timed answers |
 | 📋 Interview review | ✅ available | technical / project / expression / pros-cons / suggestions |
 | 🧭 Career planning | ✅ available | strengths / positioning / short-mid-long-term path |
 | 💬 General Q&A | ✅ available | answer as Arthur |
@@ -40,17 +46,18 @@ The project was rebuilt from a self-hosted LangGraph backend + Vue frontend into
 ```
 intelliview-plugin/
 ├── plugin.json                 # manifest (capabilities: tools/storage/logging/prompts/skills)
-├── main.py                     # Plugin class: registers skills / persona prompt / report tool
-└── skills/intelliview/SKILL.md # intent routing + 4 modes
+├── main.py                     # Plugin class: profile hook + 9 interview tools
+├── skills/intelliview/SKILL.md # intent routing + 8 modes
 ```
 
-The plugin registers three contributions at host startup (verified at runtime):
+The plugin registers four contributions at host startup (verified at runtime):
 
 | Contribution | Notes |
 |------|------|
-| **Skill** | `SKILL.md` describes the four-mode workflow, installed into `default` and `QwenPaw_QA_Agent_0.2` workspaces |
+| **Skill** | `SKILL.md` describes the eight-mode workflow, installed into `default` and `QwenPaw_QA_Agent_0.2` workspaces |
 | **Prompt** | `intelliview_persona` (priority=90) injects the Arthur persona |
-| **Tool** | `generate_interview_report` (deterministic score formatting), injected into each workspace's ToolRegistry |
+| **Hook** | `PRE_DISPATCH` auto-injects a compact user profile (weakest dimension / recurring weaknesses / target positions) **and due-card reminders** into every conversation |
+| **Tools** | `save_interview_session` · `load_user_profile` · `generate_interview_report` (5-dim 1-10 scoring + history delta) · `build_question_bank` · `list_interview_history` · `render_report_card` (HTML radar + trend) · `create_error_card` · `drill_weaknesses` (variant questions + 60s drills) · `update_error_card` (spaced repetition 1→3→7→14d) |
 
 ---
 
@@ -120,6 +127,8 @@ Deleted the entire LangGraph/FastAPI stack and rebuilt as a QwenPaw plugin (see 
 - **2026.06** Multi-Agent v2 shipped (issue #4): Planner / Workers×N / Reporter, Send API, 14 reused tools (commit `c1a249e`)
 - **2026.06** v2 production wiring: `setup_v2()`, `/api/v2/chat` + `/api/v2/health`, 74/74 tests
 - **2026.11** QwenPaw plugin fork: LangGraph stack removed, core dialog migrated
+- **2026.11** plugin v0.2 data foundation: interview archive + profile hook + JD question banks + HTML report cards (6 tools, 8/8 local self-checks passing)
+- **2026.11** plugin v0.3 drill loop: failed questions auto-become spaced-repetition error cards, due cards nag via hook, drills use variant questions + 60-second timed answers (9 tools, 11/11 local self-checks passing)
 
 ---
 
