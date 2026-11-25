@@ -1,88 +1,117 @@
-# IntelliView - AI 面试实时助手
+# IntelliView —— AI 面试实时助手
 
 > 不再害怕面试，AI 全程护航。
-> 基于 **LangGraph** 的智能面试助手，实时 Handle 面试官，支持多轮模拟面试、面试复盘、职业规划。
-> 单例 Agent + 会话隔离 + 流式事件驱动。
 
-**使用 Claude Code 开发 &middot; OpenClaw 作为个人助手贡献 · Hermes Agent 作为个人助手贡献**
+**当前形态**：基于 **QwenPaw 插件（二开）** 的 AI 面试助手，支持模拟面试 / 面试复盘 / 职业规划 / 问答。
 
-[![Arthur](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega-Hermes%20Agent-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3**
+> 本文档既是**产品介绍**，也是本项目的**技术迭代史**与 **Agent 协作记录**——记录它如何从自研 LangGraph 演进到 QwenPaw 插件，以及每个 Agent 在什么阶段加入、写了什么代码、参与了哪些模型。
 
 [English](./README.md)
 
+**贡献者（按加入时间）**
+
+[![Arthur with Claude Code/Codex/Trae](https://img.shields.io/badge/Arthur-MM--arthur-blue)](https://github.com/MM-arthur) · [![Nova-OpenClaw](https://img.shields.io/badge/Nova-OpenClaw-green)](https://github.com/openclaw) · [![Vega-Hermes](https://img.shields.io/badge/Vega-Hermes%20Agent-orange)](https://github.com/NousResearch/hermes-agent) · **MiniMax-M3** · **GLM5.3**
+
 ---
 
-## 核心特性
+## 目录
 
-| 特性 | 说明 |
+- [1. 产品能力](#1-产品能力)
+- [2. 当前架构：QwenPaw 插件二开](#2-当前架构qwenpaw-插件二开)
+- [3. 快速开始](#3-快速开始)
+- [4. 技术迭代史](#4-技术迭代史)
+- [5. Agent 协作记录](#5-agent-协作记录)
+- [6. 里程碑](#6-里程碑)
+- [7. 技术栈](#7-技术栈)
+
+---
+
+## 1. 产品能力
+
+| 能力 | 状态 | 说明 |
+|------|------|------|
+| 🤝 模拟面试 | ✅ 当前可用 | 多轮追问，结束时输出结构化评分报告 |
+| 📋 面试复盘 | ✅ 当前可用 | 技术 / 项目 / 表达 / 优缺点 / 改进建议 |
+| 🧭 职业规划 | ✅ 当前可用 | 优势分析 / 目标定位 / 短中长期路径 |
+| 💬 普通问答 | ✅ 当前可用 | 以 Arthur 身份回答面试官问题 |
+| 🎤 语音输入 | ⏸ 历史已实现，二开暂缓 | Funasr / Whisper 实时转写 |
+| 📷 面试官行为分析 | ⏸ 历史已实现，二开暂缓 | YOLOv8n 表情/视线/姿势 |
+| 📄 多格式解析 | ⏸ 历史已实现，二开暂缓 | 图片/PDF(OCR)/Excel/Word/PPT |
+| 🧠 个人知识库 RAG | ⏸ 历史已实现，二开暂缓 | FAISS 向量检索简历/JD/博客 |
+| 🔍 实时搜索 | ⏸ 历史已实现，二开暂缓 | Tavily API |
+| 💾 会话持久化 | ✅ 由 QwenPaw 内置 | 三层记忆 + 持久化历史 |
+
+> 「⏸ 历史已实现」的能力属于旧 LangGraph 技术栈，本次二开已删除，后续可基于 QwenPaw 的工具/技能机制逐步补回。
+
+---
+
+## 2. 当前架构：QwenPaw 插件二开
+
+项目已从「自研 LangGraph 后端 + Vue 前端」改造为 **QwenPaw 插件**。核心对话循环、模型路由、三层记忆、通道、沙箱、调度全部由 QwenPaw 运行时提供，插件只贡献「领域增量」。
+
+```
+intelliview-plugin/
+├── plugin.json                 # 插件清单（声明 tools/storage/logging/prompts/skills 能力）
+├── main.py                     # Plugin 类：注册 skills / persona prompt / 评分工具
+└── skills/intelliview/SKILL.md # 意图路由 + 四种模式（模拟面试/复盘/职业规划/问答）
+```
+
+插件在宿主启动时注册三类贡献（已在运行时验证）：
+
+| 贡献 | 说明 |
 |------|------|
-| 🤝 **模拟面试** | 多轮对话,结束时输出结构化评估报告 |
-| 📋 **面试复盘** | 对照 JD/简历,输出技术评分 + 改进建议 |
-| 🧭 **职业规划** | 召回简历 + 对话历史,输出个性化发展路径 |
-| 🎤 **语音输入** | 实时语音转文字,直接对话 |
-| 🧠 **评估历史记忆** | 面试表现自动追踪，topic 级评分 + 趋势分析，AI 出题更有针对性 |
-| 📷 **面试官行为分析** | YOLOv8 实时分析表情/视线/姿势/注意力 |
-| 📄 **多格式解析** | 图片/ PDF(OCR)/ Excel / Word / PPT |
-| 🧠 **个人知识库 RAG** | Arthur 简历 + JD + CSDN 博客 → FAISS 向量检索 |
-| 🔍 **实时搜索** | Tavily API 支持最新知识 |
-| 💾 **会话持久化** | SqliteSaver,重启不丢对话历史 |
-| 🔗 **AG-UI 协议** | 标准 Agent-用户交互协议,支持多 Agent 扩展 |
+| **Skill** | `SKILL.md` 描述四种模式的工作流，装入 `default` 与 `QwenPaw_QA_Agent_0.2` 两个 workspace |
+| **Prompt** | `intelliview_persona`（priority=90）注入 Arthur 人设 |
+| **Tool** | `generate_interview_report`（确定性评分格式化），注入各 workspace 的 ToolRegistry |
+
+### 为什么"核心对话"的实现这么简单
+
+旧 LangGraph 的 11 节点编排，本质是把「推理循环 + 意图路由 + 工具调度」手写了一遍。QwenPaw 已内置这些运行时能力，所以插件只需写**领域逻辑**：意图路由与面试流程靠 `SKILL.md` 的提示词表达，评分报告靠一个确定性工具，人设靠一段 prompt。简单是这个范式的自然结果，不是偷工。
 
 ---
 
-## 设计架构
+## 3. 快速开始
 
-### 单例 Agent + 分层会话
+```powershell
+# 1. 安装 QwenPaw
+pip install qwenpaw
 
-```
-进程启动时 → AgentSingleton 编译一次 LangGraph(11节点)
-              ↓ session_id
-            SessionManager → 每个会话分配独立 SqliteSaver
-              ↓
-            对话历史 + RAG + MCP工具(均会话隔离)
-```
+# 2. 初始化
+qwenpaw init --defaults
 
-### 意图路由
+# 3. 配置模型（Moonshot，OpenAI-compatible）
+qwenpaw models add-provider moonshot -n Moonshot -u https://api.moonshot.cn/v1
+qwenpaw models add-model moonshot -m moonshot-v1-8k -n "Moonshot v1 8k"
+qwenpaw models config-key moonshot   # 密文输入 Moonshot key
 
-```
-用户输入
-  ↓
-intent_recognition(LLM识别意图)
-  ↓
-_get_intent_mode()
-  ├── mock_interview    → 多轮模拟面试
-  ├── interview_review  → 面试复盘分析
-  ├── career_planning   → 职业发展规划
-  └── normal_chat       → RAG检索 / 网页搜索 / 直接生成
+# 4. 安装插件
+qwenpaw plugin install ./intelliview-plugin
+
+# 5. 启动
+qwenpaw          # TUI 终端对话
+# 或
+qwenpaw app      # Web 控制台 http://127.0.0.1:8088
 ```
 
-### 数据流
+修改 [main.py](./intelliview-plugin/main.py) 或 [SKILL.md](./intelliview-plugin/skills/intelliview/SKILL.md) 后重新安装插件即可生效：
 
-```
-文本/语音/视频帧 → pre_router → optimize_transcript
-                                      ↓
-                              intent_recognition
-                                      ↓
-                              agent_router → RAG / 搜索 / 生成
-                                              ↓
-                              AG-UI 协议 WebSocket 返回
+```powershell
+qwenpaw plugin install ./intelliview-plugin
 ```
 
-### AG-UI 协议
+---
 
-IntelliView 采用 **AG-UI (Agent User Interaction Protocol)** 作为前后端通信协议：
+## 4. 技术迭代史
 
-- **协议标准**：开源、轻量级、基于事件的 Agent 与用户交互协议
-- **端点**：`/agui` WebSocket 端点
-- **消息格式**：AG-UI 标准格式 `agent-user-interaction` / `user-agent-interaction`
-- **优势**：标准化交互、未来可扩展多 Agent 协作
+### 阶段一 · v1：LangGraph 单例 Agent（11 节点）
 
-### Agent 节点图
+**形态**：FastAPI 后端 + Vue3 前端，`AgentSingleton` 编译一次 LangGraph 图（11 节点），`SessionManager` 按 `session_id` 分配独立 SqliteSaver 会话。
+
+**核心链路**：`输入 → pre_router → optimize_transcript → intent_recognition → agent_router → RAG/搜索/生成`，前后端经 **AG-UI 协议** WebSocket 通信。
 
 ```mermaid
 graph TD
     START([用户输入]) --> INPUT_TYPE{输入类型}
-
     INPUT_TYPE -->|文本| TEXT_INPUT
     INPUT_TYPE -->|语音| VOICE_INPUT
     INPUT_TYPE -->|视频帧| VIDEO_INPUT
@@ -90,478 +119,128 @@ graph TD
     INPUT_TYPE -->|Excel/Word| FILE_DOC
 
     TEXT_INPUT --> OPTIMIZE
-    VOICE_INPUT --> WHISPER[Funasr 语音识别]
-    WHISPER --> TRANSCRIPT[transcript]
-    TRANSCRIPT --> OPTIMIZE
+    VOICE_INPUT --> WHISPER[Funasr 语音识别] --> TRANSCRIPT --> OPTIMIZE
+    FILE_IMG --> OCR[PaddleOCR] --> TRANSCRIPT
+    FILE_DOC --> DOC_PARSE[文档解析] --> TRANSCRIPT
+    VIDEO_INPUT --> YOLO[YOLOv8n 行为分析] --> BEHAVIOR_RESULT
 
-    FILE_IMG --> OCR[PaddleOCR 文字识别]
-    OCR --> TRANSCRIPT
+    OPTIMIZE[optimize_transcript] --> INTENT[intent_recognition] --> ROUTER[agent_router]
 
-    FILE_DOC --> DOC_PARSE[文档解析]
-    DOC_PARSE --> TRANSCRIPT
-
-    VIDEO_INPUT --> YOLO[YOLOv8n 行为分析]
-    YOLO --> BEHAVIOR_RESULT
-
-    OPTIMIZE[optimize_transcript] --> INTENT[intent_recognition]
-    INTENT --> ROUTER[agent_router]
-
-    ROUTER -->|技术/个人问题| RAG[RAG检索]
-    RAG --> CHECK1{RAG有结果?}
-    CHECK1 -->|有| GENERATE_RAG[generate_response]
+    ROUTER -->|技术/个人问题| RAG[RAG检索] --> CHECK1{RAG有结果?}
+    CHECK1 -->|有| GENERATE_RAG
     CHECK1 -->|无| SEARCH
-
-    ROUTER -->|最新知识| SEARCH[网页搜索]
-    SEARCH --> GENERATE_WEB[generate_response]
-
-    ROUTER -->|开放性问题| GENERATE_OPEN[generate_response]
-
-    ROUTER -->|模拟面试| MOCK[MOCK_INTERVIEW 多轮对话]
-    MOCK --> MOCK_LOOP{继续?}
+    ROUTER -->|最新知识| SEARCH[网页搜索] --> GENERATE_WEB
+    ROUTER -->|开放性问题| GENERATE_OPEN
+    ROUTER -->|模拟面试| MOCK[MOCK_INTERVIEW] --> MOCK_LOOP{继续?}
     MOCK_LOOP -->|继续| MOCK
-    MOCK_LOOP -->|结束| MOCK_REPORT[生成评估报告]
-
-    ROUTER -->|面试复盘| REVIEW[INTERVIEW_REVIEW]
-    REVIEW --> REVIEW_RPT[生成复盘报告]
-
-    ROUTER -->|职业规划| CAREER[CAREER_PLANNING]
-    CAREER --> CAREER_PLAN[生成发展规划]
-
-    BEHAVIOR_RESULT --> BEHAVIOR_RESP[generate_response 面试官分析]
-
-    GENERATE_RAG --> END1([输出])
-    GENERATE_WEB --> END2([输出])
-    GENERATE_OPEN --> END3([输出])
-    BEHAVIOR_RESP --> END4([输出])
-    MOCK_REPORT --> END5([输出])
-    REVIEW_RPT --> END6([输出])
-    CAREER_PLAN --> END7([输出])
-
-    style OPTIMIZE fill:#4a90d9,color:#fff
-    style INTENT fill:#4a90d9,color:#fff
-    style ROUTER fill:#4a90d9,color:#fff
-    style RAG fill:#4a90d9,color:#fff
-    style SEARCH fill:#4a90d9,color:#fff
-    style MOCK fill:#8b5cf6,color:#fff
-    style REVIEW fill:#8b5cf6,color:#fff
-    style CAREER fill:#8b5cf6,color:#fff
-    style GENERATE_RAG fill:#4a90d9,color:#fff
-    style GENERATE_WEB fill:#4a90d9,color:#fff
-    style GENERATE_OPEN fill:#4a90d9,color:#fff
-    style BEHAVIOR_RESP fill:#4a90d9,color:#fff
-    style MOCK_REPORT fill:#8b5cf6,color:#fff
-    style REVIEW_RPT fill:#8b5cf6,color:#fff
-    style CAREER_PLAN fill:#8b5cf6,color:#fff
-    style WHISPER fill:#17a2b8,color:#fff
-    style YOLO fill:#17a2b8,color:#fff
-    style OCR fill:#17a2b8,color:#fff
-    style DOC_PARSE fill:#51cf66,color:#fff
-    style CHECK1 fill:#ff9800,color:#fff
-    style MOCK_LOOP fill:#ff9800,color:#fff
+    MOCK_LOOP -->|结束| MOCK_REPORT
+    ROUTER -->|面试复盘| REVIEW --> REVIEW_RPT
+    ROUTER -->|职业规划| CAREER --> CAREER_PLAN
+    BEHAVIOR_RESULT --> BEHAVIOR_RESP
 ```
+
+### 阶段二 · v2：Multi-Agent（Planner / Workers / Reporter）
+
+**形态**：叠加式第二张图，位于 `src/agents/`。把 v1 节点复用为 **Tool 包装器**，用 **Plan-and-Execute + Send API + Subgraph + ReAct** 三阶段流水线编排，14 个工具并行调度。
+
+**方法论（六件套）**：
+
+| 组件 | 角色 |
+|---|---|
+| Plan-and-Execute | Planner 一次性拆 1–5 个任务，避免每步重规划 |
+| Send API | 并行扇出 N 个 Worker subgraph |
+| Subgraph | Worker 封装为主图视角的 1 个 node |
+| ReAct（条件边） | Worker 内部 观察→行动→观察 循环 |
+| Pydantic State | 类型安全状态 + 业务方法 |
+| AG-UI 协议 | 标准化前后端事件 |
+
+**三层包含关系**：主图（planner → worker_subgraph → reporter）→ Worker subgraph（内部 ReAct 循环）→ worker_node 内部条件边自循环。
+
+**生产接入**：`setup_v2()` 启动钩子注册 14 个 Tool，`GET /api/v2/health` + `POST /api/v2/chat` 端点，74/74 单元+集成测试通过。
+
+### 阶段三 · v3：QwenPaw 插件二开（当前）
+
+**形态**：删除 LangGraph/FastAPI 全套，改造为 QwenPaw 插件（见[第 2 节](#2-当前架构qwenpaw-插件二开)）。
+
+**改造动因**：自研 LangGraph 编排带来大量胶水代码与依赖（torch 在 Windows 下的 `shm.dll` 崩溃、依赖冲突等），而 QwenPaw 已内置推理循环/记忆/通道/沙箱，二开只需写领域增量。
+
+**改造结果**：仓库从 300+ 文件精简为 1 个插件目录；核心对话能力无损迁移（四种模式 + 评分报告），模型沿用 Moonshot。
 
 ---
 
-### Multi-Agent v2 (Planner / Workers / Reporter)
+## 5. Agent 协作记录
 
-第二个**叠加式**图位于 `src/agents/`。它把 v1 节点复用为 **Tool 包装器**，但通过基于 **Plan-and-Execute + Send API + Subgraph + ReAct** 的三阶段流水线进行编排 —— 这是生产级多智能体系统的工程蓝图。
+> 每位 Agent 的加入时间、负责的代码、参与的模型如下。
 
-#### 为什么要这样设计？（方法论 —— 六件套）
+### Arthur（人 · 项目 Owner）
 
-| 组件 | 角色 | 为什么重要 |
-|---|---|---|
-| **Plan-and-Execute** | 顶层串行编排（Planner → Worker subgraph → Reporter） | 一次性规划，避免每步重规划 → 更便宜 + 更稳定 |
-| **Send API** | 并行扇出 —— Planner 并行派发 N 个 Worker subgraph | 独立任务同时跑 → N 倍提速；不需要显式的"plan 完成?"判断 |
-| **Subgraph** | Worker 逻辑封装成主图视角的 1 个 node | 封装 + 状态隔离 + 跨 Send 派发可复用 |
-| **ReAct（通过条件边）** | Worker subgraph 内部：观察 → 行动 → 观察 → 循环 | 动态选工具，无需写死流程 |
-| **Pydantic State** | 类型安全的状态 schema + 业务方法（`plan.is_complete`、`plan.next_task`） | 类型安全 + 业务语义，代替魔法字符串 `if status == "done"` |
-| **AG-UI 协议** | 前后端流式事件 | 标准化、面向未来多 Agent 扩展 |
+仓库所有者，`MM-arthur`。提出产品方向（AI 面试助手）、提供 Moonshot/Tavily 密钥、把控需求（模拟面试/复盘/职业规划三主线）。
 
-#### 架构（三层包含关系）
+### Claude Code（v1 核心开发）
 
-```mermaid
-graph TD
-    START([用户查询]) --> PLANNER[planner_node<br/>LLM 拆成 1-5 个任务]
-    PLANNER -->|Send t1| WSG1[worker_subgraph #1<br/>编程]
-    PLANNER -->|Send t2| WSG2[worker_subgraph #2<br/>系统设计]
-    PLANNER -->|Send t3| WSG3[worker_subgraph #3<br/>沟通]
-    PLANNER -->|Send tN| WSGN[worker_subgraph #N<br/>项目 / 学习]
+参与最早阶段，负责 v1 基础建设：LangGraph 图（11 节点）、意图路由、RAG（FAISS）、语音/OCR/YOLO 接入、AG-UI 协议、Apple 风格前端。参与模型：Moonshot（主 LLM）、Funasr/Whisper（语音）、YOLOv8n（行为）、PaddleOCR、FAISS+Sentence Transformers。
 
-    subgraph WorkerInternal [worker_subgraph（内部 —— 主图看是 1 个 node）]
-        direction LR
-        WSTART([subgraph START]) --> WN[worker_node<br/>ReAct 循环：观察 → 工具 → 观察]
-        WN -->|continue| WN
-        WN -->|all subtasks done| WEND([subgraph END])
-    end
+### MiniMax-M3（模型 · 评估/生成）
 
-    WSG1 --- WorkerInternal
-    WSG2 --- WorkerInternal
-    WSG3 --- WorkerInternal
-    WSGN --- WorkerInternal
+作为**模型**参与（非代码 Agent），承担早期评估与生成任务（contributors 中标注 "MiniMax as model"）。
 
-    WSG1 --> REPORTER[reporter_node<br/>聚合 Markdown]
-    WSG2 --> REPORTER
-    WSG3 --> REPORTER
-    WSGN --> REPORTER
-    REPORTER --> END([final_report])
+### Nova（OpenClaw · 2026.04 加入）
 
-    style PLANNER fill:#4a90d9,color:#fff
-    style WSG1 fill:#51cf66,color:#fff
-    style WSG2 fill:#51cf66,color:#fff
-    style WSG3 fill:#51cf66,color:#fff
-    style WSGN fill:#51cf66,color:#fff
-    style REPORTER fill:#8b5cf6,color:#fff
-    style WN fill:#ff9800,color:#fff
-```
+加入里程碑 commit：`af29185 docs: add milestone - Nova joins collaboration`。
 
-**三层包含关系：**
+负责**工程化与集成**：
+- SqliteSaver 会话持久化（重启不丢对话）
+- 职业意图路由（mock_interview / interview_review / career_planning）
+- 前端 UI 升级 + Docker 部署支持
+- v2 chat 接线、线程池修复
+- README 中英文同步维护
 
-- **第 1 层 —— 主图**：3 个 node（`planner_node`、`worker_subgraph` 作为 1 个 node、`reporter_node`）。
-- **第 2 层 —— Worker subgraph**：1 个内部 node（`worker_node`）。
-- **第 3 层 —— worker_node 内部**：条件边自循环 = ReAct 模式。
+### Vega（Hermes Agent · 2026.06 加入）
 
-**主图把 `worker_subgraph` 看作 1 个 node** —— 不知道内部 ReAct 循环的存在。这就是 **subgraph-as-node 封装原则**。
+加入里程碑 commit：`7295719 [Vega] docs: add Vega (Hermes Agent) to README contributors`。
 
-#### 代码蓝图
+负责 **Multi-Agent v2 架构**（issue #4）：
+- Planner / Workers×N / Reporter 三阶段流水线
+- Send API 并行调度 + Subgraph 封装 + ReAct 循环
+- 14 个 v1 节点以 Tool 形式复用
+- RAG 包装、openspec 提案、LangGraph multi-agent 架构调研
+- 74/74 测试通过
 
-**1. State schema**（Pydantic —— 类型安全 + 业务语义）：
+### 本次会话 Agent（2026.11 · QwenPaw 二开）
 
-```python
-from pydantic import BaseModel
-from typing import Literal
-
-class EvalTask(BaseModel):
-    id: int
-    dimension: Literal["编程", "系统设计", "沟通", "项目", "学习"]
-    status: Literal["pending", "done"] = "pending"
-    score: float | None = None
-    evidence: str | None = None
-
-class Plan(BaseModel):
-    tasks: list[EvalTask]
-
-    @property
-    def is_complete(self) -> bool:
-        return all(t.status == "done" for t in self.tasks)
-
-    @property
-    def next_task(self) -> EvalTask | None:
-        return next((t for t in self.tasks if t.status != "done"), None)
-```
-
-**2. Planner node**（LLM 把用户查询拆成 1–5 个任务）：
-
-```python
-def planner_node(state):
-    plan = llm_split_into_tasks(state["query"], max_tasks=5)
-    return {"plan": plan}
-```
-
-**3. Worker subgraph**（内部 ReAct 循环，通过条件边）：
-
-```python
-from langgraph.graph import StateGraph, END, START
-
-def worker_node(state):
-    # ReAct：思考当前任务 → 调工具 → 观察结果
-    new_evidence = react_step(state["task"], state["candidate"])
-    return {"evidence": state["evidence"] + [new_evidence]}
-
-def should_continue(state):
-    # 条件边 —— 循环到收集足够证据
-    return "end" if len(state["evidence"]) >= 3 else "continue"
-
-worker_subgraph = StateGraph(WorkerState)
-worker_subgraph.add_node("worker_node", worker_node)
-worker_subgraph.add_conditional_edges(
-    "worker_node", should_continue,
-    {"continue": "worker_node", "end": END}
-)
-worker_subgraph.add_edge(START, "worker_node")
-compiled_worker = worker_subgraph.compile()
-```
-
-**4. 主图**（用 Send API 并行扇出）：
-
-```python
-from langgraph.constants import Send
-
-def dispatch_workers(state):
-    """扇出：为每个 pending 任务派发一个 subgraph 实例。"""
-    return [
-        Send("worker_subgraph", {"task": task, "candidate": state["candidate"]})
-        for task in state["plan"].tasks
-        if task.status != "done"
-    ]
-
-main_graph = StateGraph(MainState)
-main_graph.add_node("planner_node", planner_node)
-main_graph.add_node("worker_subgraph", compiled_worker)   # subgraph 作为 node
-main_graph.add_node("reporter_node", reporter_node)
-
-main_graph.add_edge(START, "planner_node")
-main_graph.add_conditional_edges(
-    "planner_node",
-    dispatch_workers,                # Send API
-    ["worker_subgraph"]
-)
-main_graph.add_edge("worker_subgraph", "reporter_node")  # 扇入：所有 subgraph 汇聚
-main_graph.add_edge("reporter_node", END)
-```
-
-#### 运行时实际发生什么
-
-```
-1. planner_node 跑一次  → 把 query 拆成 1-5 个任务
-2. dispatch_workers 返回 N 个 Send 对象
-3. N 个 worker_subgraph 实例并行启动
-   - 每个实例的 worker_node ReAct 循环
-   - 每个实例调用不同工具（RAG、网页搜索、行为分析 ...）
-4. 所有 subgraph 实例完成后 → 扇入到 reporter_node
-5. reporter_node 聚合结果 → final_report
-```
-
-#### 关键特性
-
-- **并行**：每个 Worker 通过 langgraph `Send` 独立运行，结果在 Reporter 汇合。
-- **重试**：每个 Worker 重试工具 3 次，然后降级到 `web_search`。
-- **封装**：主图把 `worker_subgraph` 看作 1 个 node —— Planner/Reporter 看不到内部 ReAct 循环。
-- **共存**：v1（`get_singleton_agent`）和 v2（`get_singleton_multi_agent_v2`）都可用；旧版 15 节点图未动。
-- **测试**：74/74 单元 + 集成测试通过（见 `tests/`）—— 60 框架 + 14 生产集成。
+负责**架构改造**：
+- 将 LangGraph/FastAPI 全套改造为 QwenPaw 插件二开
+- 删除旧代码 300+ 项（含下载模型权重、调试脚本）
+- 核心对话逻辑迁移为插件（skills + persona + 评分工具）
+- 模型沿用 Moonshot（OpenAI-compatible，`moonshot-v1-8k`）
 
 ---
 
-## 在生产环境启用 v2
-
-`src/agents/integration.py` 把 v2 框架接到 FastAPI 应用。`setup_v2()` 会在 `src/main.py` 的 startup 事件中自动调用：
-
-```python
-from src.agents.integration import setup_v2, is_v2_ready, get_v2_tools_count
-setup_v2()            # 把 TOOL_REGISTRY 注册到 worker dispatch + 预热 singleton
-is_v2_ready()         # True
-get_v2_tools_count()  # 14
-```
-
-**端点**（加在 `src/routes/rest.py`）：
-- `GET  /api/v2/health` — 返回 `{"ready": true, "tools_registered": 14}`
-- `POST /api/v2/chat`  — body 为 `{"query": "...", "session_id": "..."}`，返回 `{query, tasks, task_results, worker_errors, final_report, fallback_used}`
-
-**手动验证：**
-
-```bash
-curl -s http://localhost:8000/api/v2/health
-# {"ready":true,"tools_registered":14}
-
-curl -s -X POST http://localhost:8000/api/v2/chat \
-  -H "Content-Type: application/json" \
-  -d '{"query": "你好", "session_id": "s1"}'
-# {"query":"你好", "tasks":[…], "final_report": "# Multi-Agent Report\n**Summary**: 1/1 …", …}
-```
-
-v1 端点（`/ws/chat`、`/api/process_audio`、`/api/analyze_behavior` 等）保持不变，与 v2 并存运行。
-
----
-
-## 快速启动
-
-```bash
-# 1. 安装依赖
-pip install -r requirements.txt
-
-# 2. 配置 .env
-MOONSHOT_API_KEY=your_moonshot_api_key
-
-# 3. 启动后端
-python -m uvicorn src.main:app --host 0.0.0.0 --port 8000
-# 看到 "[AgentSingleton] LangGraph 编译完成" 即成功
-
-# 4. 启动前端(另一个终端)
-cd src/ui && python -m http.server 8080
-```
-
-访问:
-- 前端界面:http://localhost:8080
-- API 文档:http://localhost:8000/docs
-
----
-
-## 前端:Apple 设计风格
-
-界面采用 **Apple Design System**,视觉语言:
-
-- **配色**:Apple Blue `#0071E3` + 纯白背景 + 浅灰 `#F5F5F7` 气泡
-- **字体**:SF Pro Display → Helvetica Neue 回退
-- **布局**:极简留白,大字层次分明,无多余装饰
-- **深色模式**:跟随系统偏好,Apple 深色系
-
-| 元素 | 风格 |
-|------|------|
-| 用户气泡 | Apple Blue 实色,无渐变 |
-| AI 气泡 | 浅灰 `#F5F5F7`,底部圆角尖角 |
-| 输入框 | 浅灰边框,Blue focus 环 |
-| 意图栏 | Pill 胶囊,蓝/绿/紫区分模式 |
-| Header | 纯黑背景,1px 底边线 |
-
----
-
-## 技术栈
-
-| 类别 | 技术 |
-|------|------|
-| Agent | LangGraph, LangChain |
-| LLM | Moonshot AI (moonshot-v1-8k) |
-| 语音 | Funasr Paraformer(中文)/ Whisper |
-| 行为分析 | YOLOv8n |
-| OCR | PaddleOCR |
-| 向量检索 | FAISS + Sentence Transformers |
-| 搜索 | Tavily API |
-
----
-
-## 项目结构
-
-```
-src/
-├── main.py              # FastAPI 入口（路由注册 + CORS + startup）
-├── multi_agent.py       # LangGraph 定义（11节点）
-├── skill_manager.py   # 统一 Skill 加载（支持 DeerFlow workflow/calls/sub_agents）
-├── mcp_client.py       # MCP 工具客户端
-├── routes/             # 路由模块（从 main.py 拆分）
-│   ├── rest.py         # REST API 端点
-│   └── websocket.py    # WebSocket 聊天处理器
-├── core/               # 核心模块
-│   ├── session_manager.py  # SessionManager + AgentSingleton 单例
-│   ├── state.py           # AgentState 定义
-│   ├── llm.py             # LLM 配置
-│   └── retry.py           # 重试机制
-├── memory/             # 评估历史记忆系统
-│   └── evaluation_memory.py  # Topic评分 / 趋势 / 改进建议
-├── nodes/              # 节点实现
-│   ├── career_intents.py # 模拟面试 / 复盘 / 职业规划
-│   └── ...              # preprocessing / routing / generation
-├── rag/
-│   └── RAG.py         # FAISS持久化 + 个人知识库
-└── ui/
-    └── index.html     # Apple 风格前端（Vue 3)
-```
-
----
-
-## API 概览
-
-| 端点 | 方式 | 功能 |
-|------|------|------|
-| `/ws/chat/{session_id}` | WebSocket | 对话(流式) |
-| `/api/models` | GET | 可用模型列表 |
-| `/api/initialize` | POST | 初始化会话 |
-| `/api/process_audio` | POST | 语音 → 转文字 → AI回复 |
-| `/api/analyze_behavior` | POST | 视频帧 → YOLO行为分析 |
-| `/api/upload` | POST | 文件上传(OCR/解析) |
-
-**WebSocket 对话示例:**
-
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws/chat/session_1');
-ws.send(JSON.stringify({ type: 'chat', content: '来,模拟面试一下' }));
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  if (data.type === 'text') process.stdout.write(data.content);
-  if (data.type === 'complete') {
-    console.log('\n意图模式:', data.intent_mode);
-    console.log('面试轮次:', data.current_round);
-  }
-};
-```
-
----
-
-## 环境变量
-
-| 变量 | 必填 | 说明 | 默认值 |
-|------|------|------|--------|
-| `MOONSHOT_API_KEY` | ✅ | Moonshot API 密钥 | - |
-| `TAVILY_API_KEY` | 否 | Tavily 搜索 | - |
-| `SPEECH_ENGINE` | 否 | `sensevoice` 或 `funasr` | `sensevoice` |
-
----
-
-## Skill 系统
-
-核心文件：`src/skill_manager.py`（唯一文件，包含 SkillLoader + SkillManager）
-
-支持 DeerFlow 风格增强字段（SKILL.md）：
-
-```markdown
-## 工作流
-1. 初始化面试情境
-2. 生成第一个问题
-3. 分析用户回答
-4. 结束时调用 interview_review
-
-## 可调用子技能
-calls:
-  - skill: interview_review
-    trigger: interview_ended
-
-## 子Agent定义
-- name: question_generator
-  role: 资深面试官，擅长追问
-  tools: [web_search, rag_processing]
-```
-
-**使用示例**（Python）：
-```python
-from src.skill_manager import get_skill_manager
-
-sm = get_skill_manager()
-
-# 获取 Skill 函数
-skill_fn = sm.get_skill(intent_mode="mock_interview")
-
-# 获取增强字段
-workflow = sm.get_workflow("mock_interview")      # 工作流描述
-calls    = sm.get_calls("mock_interview")         # chaining 规则
-agents   = sm.get_sub_agents("mock_interview")   # 子 Agent 定义
-
-# 获取 Skill 元信息
-info = sm.get_skill_info("mock_interview")
-```
-
----
-
-## Docker 部署
-
-```bash
-docker build -t langchain-ai-stack .
-docker run -d -p 8000:8000 -p 8080:8080 \
-  -e MOONSHOT_API_KEY=your_key \
-  -v $(pwd)/data:/app/data \
-  langchain-ai-stack
-```
-
-详细文档见 [DEPLOY.md](./DEPLOY.md)。
-
----
-
-## 开发
-
-**修改 Agent 逻辑** → 编辑 `src/multi_agent.py` → 重启服务
-
-**调试会话:**
-```bash
-GET  /api/sessions              # 查看活跃会话
-GET  /api/session/{session_id} # 查看指定会话状态
-POST /api/reset_conversation   # 重置会话
-```
-
----
-
-## 里程碑
+## 6. 里程碑
 
 - **2026.04** Nova 加入贡献
 - **2026.06** Vega 加入贡献
-- **2026.06** Multi-Agent v2 上线（issue #4）：Planner / Workers×N / Reporter 架构，Send API 并行调度，14 个原 v1 节点以 Tool 形式复用，v1 图保持向后兼容（commit `c1a249e`）
-- **2026.06** Multi-Agent v2 接入生产：Tool 注册表 → worker 派发表，`setup_v2()` 启动钩子，`POST /api/v2/chat` + `GET /api/v2/health` 端点；74/74 测试通过
+- **2026.06** Multi-Agent v2 上线（issue #4）：Planner / Workers×N / Reporter，Send API 并行调度，14 个 v1 节点以 Tool 复用（commit `c1a249e`）
+- **2026.06** Multi-Agent v2 接入生产：`setup_v2()` 启动钩子，`/api/v2/chat` + `/api/v2/health`，74/74 测试通过
+- **2026.11** QwenPaw 插件二开：删除 LangGraph 技术栈，核心对话迁移为插件
+
+---
+
+## 7. 技术栈
+
+| 类别 | 历史（v1/v2） | 当前（v3 二开） |
+|------|--------------|----------------|
+| Agent 框架 | LangGraph, LangChain | **QwenPaw 插件**（底层 AgentScope 2.0） |
+| 主 LLM | Moonshot (moonshot-v1-8k) | **Moonshot (moonshot-v1-8k)** |
+| 评估/生成模型 | MiniMax-M3 | — |
+| 语音 | Funasr / Whisper | —（暂缓） |
+| 行为分析 | YOLOv8n | —（暂缓） |
+| OCR | PaddleOCR | —（暂缓） |
+| 向量检索 | FAISS + Sentence Transformers | —（暂缓） |
+| 搜索 | Tavily API | —（暂缓） |
+| 前端 | Vue3 + Apple 设计风格 | QwenPaw TUI / Web 控制台 |
+| 通信 | AG-UI 协议 | QwenPaw 内置通道 |
+
+---
 
 *Arthur · Nova · Vega · MiniMax-M3*
