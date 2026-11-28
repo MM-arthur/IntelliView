@@ -35,6 +35,15 @@ pip install .
 intelliview demo        # 写入演示面试档案 + 错题卡 + 渲染 HTML 报告卡
 ```
 
+> **🚄 大陆网络克隆慢？** 给 clone 命令加个加速前缀即可（其余步骤不变）：
+>
+> ```powershell
+> git clone https://gh-proxy.com/https://github.com/MM-arthur/IntelliView.git
+> # 备选：git clone https://ghfast.top/https://github.com/MM-arthur/IntelliView.git
+> pip install . -i https://pypi.tuna.tsinghua.edu.cn/simple
+> ```
+>
+> 依赖只走 PyPI（可用清华镜像），模型端点随意——Moonshot / DeepSeek / Qwen / 本地 Ollama 任何 OpenAI 兼容服务都能接。
 ![HTML 报告卡](docs/assets/report-card.png)
 
 ### 方式 A：MCP（任何 MCP 客户端）

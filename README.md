@@ -36,6 +36,10 @@ pip install .
 intelliview demo        # seeds demo interviews + error cards + renders the report card
 ```
 
+> **Slow GitHub access (mainland China)?** Prefix the clone URL:
+> `git clone https://gh-proxy.com/https://github.com/MM-arthur/IntelliView.git`
+> — any OpenAI-compatible endpoint (Moonshot / DeepSeek / Qwen / local Ollama) works as the model backend.
+
 ![HTML report card](docs/assets/report-card.png)
 
 ### Option A: MCP (any MCP client)
