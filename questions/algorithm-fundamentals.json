@@ -1,0 +1,88 @@
+{
+  "id": "algorithm-fundamentals",
+  "position": "算法与数据结构基础（通用）",
+  "description": "覆盖高频数据结构、双指针/滑动窗口、堆、动态规划与复杂度分析的通用面试题库，不限语言方向。",
+  "version": 1,
+  "key_points": [
+    "数据结构",
+    "双指针与滑动窗口",
+    "堆与 TopK",
+    "链表与树",
+    "动态规划",
+    "复杂度分析"
+  ],
+  "questions": [
+    {
+      "question": "手写 LRU 缓存：要求 get/put 都是 O(1)，说清你的数据结构组合。",
+      "category": "数据结构",
+      "difficulty": "medium",
+      "follow_up": "为什么不用跳表或平衡树？O(1) 的关键在哪一步？"
+    },
+    {
+      "question": "二分查找的边界怎么写才不会死循环？给你一个旋转数组讲讲你的查找思路。",
+      "category": "二分",
+      "difficulty": "medium",
+      "follow_up": "left <= right 和 left < right 两种写法分别对应什么收缩策略？"
+    },
+    {
+      "question": "无重复字符的最长子串：讲讲滑动窗口的思路和复杂度。",
+      "category": "滑动窗口",
+      "difficulty": "easy",
+      "follow_up": "如果字符集只有小写字母，还能怎么把内层判断做到 O(1)？"
+    },
+    {
+      "question": "链表判环：Floyd 判圈为什么一定相遇？找到入环点又是怎么推的？",
+      "category": "链表",
+      "difficulty": "medium",
+      "follow_up": "O(1) 空间的做法外，工程上你会用什么更直接的办法？"
+    },
+    {
+      "question": "TopK 问题：海量数据求前 1000 大，堆和分治各自怎么用？",
+      "category": "堆",
+      "difficulty": "medium",
+      "follow_up": "为什么求前 K 大用小顶堆而不是大顶堆？"
+    },
+    {
+      "question": "讲讲 BFS/DFS 在二叉树遍历中的差异；层序遍历怎么分层输出？",
+      "category": "树",
+      "difficulty": "easy",
+      "follow_up": "迭代实现前序遍历时栈的顺序为什么是反的？"
+    },
+    {
+      "question": "动态规划五步法你怎么理解？用最长公共子序列演示一遍。",
+      "category": "动态规划",
+      "difficulty": "hard",
+      "follow_up": "状态转移方程出来后，怎么从 dp 表回溯出具体的子序列？"
+    },
+    {
+      "question": "0-1 背包和完全背包的状态转移差在哪？给一个业务里的实际映射。",
+      "category": "动态规划",
+      "difficulty": "hard",
+      "follow_up": "为什么完全背包内层循环要正向遍历？"
+    },
+    {
+      "question": "图的最短路径：Dijkstra 为什么不能有负权边？有负权怎么办？",
+      "category": "图",
+      "difficulty": "hard",
+      "follow_up": "Dijkstra + 优先队的复杂度是多少？为什么不是 O(V^2)？"
+    },
+    {
+      "question": "前缀树（Trie）解决什么问题？和哈希表比的空间/时间权衡？",
+      "category": "数据结构",
+      "difficulty": "medium",
+      "follow_up": "用 Trie 做搜索框自动补全时怎么按权重排序输出？"
+    },
+    {
+      "question": "怎么分析递归算法的复杂度？主定理适用的条件是什么？",
+      "category": "复杂度",
+      "difficulty": "medium",
+      "follow_up": "归并排序的递归树每一层做了什么？为什么是 O(n log n)？"
+    },
+    {
+      "question": "一个 10GB 的日志文件在 1GB 内存的机器上统计出现最多的 URL，你的方案？",
+      "category": "海量数据",
+      "difficulty": "hard",
+      "follow_up": "哈希分片后某一片还是太大，怎么办？"
+    }
+  ]
+}

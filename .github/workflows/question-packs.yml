@@ -1,0 +1,32 @@
+name: question-packs
+
+on:
+  pull_request:
+    paths:
+      - "questions/**"
+      - "cli.py"
+      - ".github/workflows/question-packs.yml"
+  push:
+    branches: [master]
+    paths:
+      - "questions/**"
+      - "cli.py"
+      - ".github/workflows/question-packs.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile
+        run: |
+          python -m py_compile cli.py mcp_server.py intelliview-plugin/intelliview_core.py intelliview-plugin/main.py
+      - name: Engine import check
+        run: |
+          python -c "import sys; sys.path.insert(0, 'intelliview-plugin'); from intelliview_core import TOOL_DEFINITIONS; assert len(TOOL_DEFINITIONS) == 9; print('engine ok:', len(TOOL_DEFINITIONS), 'tools')"
+      - name: Validate question packs
+        run: |
+          python cli.py bank validate questions

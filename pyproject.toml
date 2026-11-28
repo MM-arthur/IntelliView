@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "intelliview"
-version = "0.5.0"
+version = "0.6.0"
 description = "AI interview coach that remembers your mistakes: error cards, spaced repetition, HTML report cards."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -35,10 +35,12 @@ Issues = "https://github.com/MM-arthur/IntelliView/issues"
 
 [tool.setuptools]
 # 根目录的 cli.py / mcp_server.py 作为顶级模块；
-# intelliview-plugin/ 目录映射为 intelliview 包（引擎所在）。
-packages = ["intelliview"]
+# intelliview-plugin/ 目录映射为 intelliview 包（引擎所在）；
+# questions/ 目录映射为 intelliview_questions 数据包（开源题库）。
+packages = ["intelliview", "intelliview_questions"]
 py-modules = ["cli", "mcp_server"]
-package-dir = { intelliview = "intelliview-plugin" }
+package-dir = { intelliview = "intelliview-plugin", intelliview_questions = "questions" }
 
 [tool.setuptools.package-data]
 intelliview = ["plugin.json", "skills/**/*", "skills/**/**/*"]
+intelliview_questions = ["*.json", "*.md"]

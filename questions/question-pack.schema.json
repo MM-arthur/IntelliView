@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://intelliview.dev/question-pack.schema.json",
+  "title": "IntelliView Question Pack",
+  "description": "IntelliView 岗位题库文件格式。一个文件 = 一个岗位包。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "position", "questions"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,40}$",
+      "description": "包 ID，小写字母/数字/连字符，全局唯一"
+    },
+    "position": {
+      "type": "string",
+      "minLength": 2,
+      "description": "岗位名称，如“Python 后端开发工程师”"
+    },
+    "description": {
+      "type": "string",
+      "description": "包的覆盖范围说明（可选）"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "包内容版本，更新内容时 +1"
+    },
+    "key_points": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "考点列表（会出现在用户画像与出题引导中）"
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 3,
+      "description": "题目列表，建议 8-12 题",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question"],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 8,
+            "description": "题干"
+          },
+          "category": {
+            "type": "string",
+            "description": "考点分类"
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"],
+            "description": "难度"
+          },
+          "follow_up": {
+            "type": "string",
+            "description": "预设深挖追问（压力面模式使用）"
+          }
+        }
+      }
+    }
+  }
+}

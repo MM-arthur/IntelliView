@@ -6,6 +6,8 @@
 
 [中文文档](./README_zh.md) · [Changelog](./CHANGELOG.md) · [MIT License](./LICENSE)
 
+![IntelliView CLI demo](docs/assets/demo.gif)
+
 ## ✨ Why is this not "yet another AI mock-interview wrapper"?
 
 | | Typical AI interview wrapper | IntelliView |
@@ -15,12 +17,23 @@
 | Pressure | None | **60-second timed** answers, one shot |
 | Data | None | Session archive + user profile + recurring weaknesses + progress trend |
 | Reports | A text blob | Self-contained **HTML report card**: radar chart + ability cards + trend line |
-| Customization | Generic questions | Paste a JD → targeted question bank, auto-activated |
+| Customization | Generic questions | Paste a JD → targeted bank, **or one-command open role packs** |
 | Runtimes | One | **QwenPaw plugin / MCP / CLI** (any agent, or just a terminal) |
 
 ## 🚀 Quick Start
 
-### Option A: MCP (recommended — any MCP client)
+### 60-second preview (no API key needed)
+
+```powershell
+git clone https://github.com/MM-arthur/IntelliView.git
+cd IntelliView
+pip install .
+intelliview demo        # seeds demo interviews + error cards + renders the report card
+```
+
+![HTML report card](docs/assets/report-card.png)
+
+### Option A: MCP (any MCP client)
 
 ```powershell
 pip install mcp
@@ -57,6 +70,7 @@ intelliview drill        # today's error-card drills
 intelliview profile      # your profile — no LLM, reads local JSON
 intelliview cards        # browse the error deck
 intelliview history      # progress curve
+intelliview bank use backend-python   # activate an open question pack
 ```
 
 Any OpenAI-compatible endpoint works:
@@ -98,10 +112,30 @@ intelliview-plugin/
 mcp_server.py                      # MCP adapter (Claude / Cursor / Codex…)
 cli.py                             # CLI adapter (pip install → `intelliview` command)
 pyproject.toml                     # packaging + console script + [cli]/[mcp] extras
+questions/                         # open question packs (one JSON = one role, PR-friendly)
+docs/assets/                       # demo GIF + report-card screenshot
 ```
 
 The engine knows nothing about its host: QwenPaw and MCP each inject a
 duck-typed `context` (storage / logger / media); all state is local JSON.
+
+## 📚 Question banks (community flywheel)
+
+Open role packs live in [`questions/`](./questions/README.md) — each is one JSON
+file (8-12 questions with follow-ups and difficulty). One command activates a
+pack; mock interviews then draw from it, and failed questions feed the error
+deck:
+
+```powershell
+intelliview bank list                  # 3 starter packs + your custom ones
+intelliview bank show backend-python   # preview
+intelliview bank use backend-python    # import & activate
+python cli.py bank validate questions  # contributor self-check
+```
+
+Custom packs without a PR: drop JSON into `~/.intelliview/question_packs/`.
+Pack format and quality bar: [`questions/README.md`](./questions/README.md) +
+[JSON schema](./questions/question-pack.schema.json) — PRs welcome 🎉
 
 ## 🗺 Roadmap (the high-star plan)
 
@@ -109,13 +143,13 @@ duck-typed `context` (storage / logger / media); all state is local JSON.
 |---|---|---|
 | 1 | Engine extraction + MCP adapter + de-personalization | ✅ v0.4 |
 | 1b | Standalone CLI (`pip install intelliview` / `intelliview` command) | ✅ v0.5 |
-| 2 | README hero GIF + demo data | ⏳ |
-| 3 | Open question banks (role packs + community PRs) | ⏳ |
+| 2 | README hero GIF + demo data | ✅ v0.6 |
+| 3 | Open question banks (role packs + community PRs) | ✅ v0.6 |
 | 4 | Launch (Show HN / V2EX / awesome lists) | ⏳ |
 
 ## 🤝 Contributing
 
-- **Question banks** (opening in Phase 3): `questions/` role packs + PR template
+- **Question banks**: add a pack in [`questions/`](./questions/README.md) — schema + validator + PR checklist ready
 - Good first issues will be labeled soon
 - The engine/adapter boundary is clean — new runtime adapters welcome (Telegram / WeChat / Slack…)
 

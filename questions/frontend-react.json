@@ -1,0 +1,87 @@
+{
+  "id": "frontend-react",
+  "position": "前端开发工程师（React）",
+  "description": "覆盖 React 原理、Hooks 陷阱、性能优化、浏览器渲染、工程化与前端安全的进阶面试题库。",
+  "version": 1,
+  "key_points": [
+    "React 原理与 Hooks",
+    "性能优化",
+    "浏览器渲染与事件循环",
+    "网络与安全",
+    "工程化"
+  ],
+  "questions": [
+    {
+      "question": "React 的 diff 算法做了哪些假设？key 的作用到底是什么？",
+      "category": "React 原理",
+      "difficulty": "medium",
+      "follow_up": "用数组下标当 key 会出什么问题？举个状态错乱的具体例子。"
+    },
+    {
+      "question": "useState 的闭包陷阱是什么？怎么解决？",
+      "category": "React Hooks",
+      "difficulty": "medium",
+      "follow_up": "函数式更新 setCount(c => c + 1) 和 setCount(count + 1) 的区别是什么？"
+    },
+    {
+      "question": "useEffect 的依赖数组漏写会怎样？为什么有时候 lint 要求的依赖反而不能加？",
+      "category": "React Hooks",
+      "difficulty": "hard",
+      "follow_up": "如果依赖确实变化太频繁，除了关闭 lint 还有哪些正规做法？"
+    },
+    {
+      "question": "React.memo、useMemo、useCallback 分别解决什么问题？什么情况下用了反而更慢？",
+      "category": "性能优化",
+      "difficulty": "medium",
+      "follow_up": "怎么用 React Profiler 证明一个组件需要 memo？"
+    },
+    {
+      "question": "讲讲浏览器从收到 HTML 到 paint 的完整渲染管线。重排和重绘的区别？",
+      "category": "浏览器",
+      "difficulty": "medium",
+      "follow_up": "transform 和 left/top 动画为什么性能差这么多？"
+    },
+    {
+      "question": "事件循环里宏任务和微任务的执行顺序？给出一段代码说出输出顺序。",
+      "category": "浏览器",
+      "difficulty": "medium",
+      "follow_up": "Promise.then 和 queueMicrotask、setTimeout(fn,0) 的优先级关系？"
+    },
+    {
+      "question": "首屏加载 6 秒，你按什么顺序优化？每一步怎么量化效果？",
+      "category": "性能优化",
+      "difficulty": "hard",
+      "follow_up": "Core Web Vitals 里 LCP/CLS/INP 分别卡在哪个环节？"
+    },
+    {
+      "question": "跨域是什么？CORS 预检请求什么时候触发？带 cookie 要满足什么条件？",
+      "category": "网络",
+      "difficulty": "medium",
+      "follow_up": "为什么服务器反射 Access-Control-Allow-Origin: * 时带凭证请求会失败？"
+    },
+    {
+      "question": "XSS 和 CSRF 的攻击原理与防御分别是什么？",
+      "category": "前端安全",
+      "difficulty": "medium",
+      "follow_up": "CSP 为什么能缓解 XSS？严格模式带来的代价是什么？"
+    },
+    {
+      "question": "React 状态管理为什么从 Redux 走向 Zustand/Jotai 这类方案？什么场景仍该用 Redux？",
+      "category": "工程化",
+      "difficulty": "hard",
+      "follow_up": "服务端组件和客户端组件的状态边界你怎么划？"
+    },
+    {
+      "question": "讲一次你主导的前端重构：怎么在不停迭代的情况下分阶段替换？",
+      "category": "工程实践",
+      "difficulty": "hard",
+      "follow_up": "哪些护栏（测试 / 灰度 / 监控）让你敢动手？"
+    },
+    {
+      "question": "SPA 路由切换后页面白屏 300ms，可能的原因有哪些？怎么定位？",
+      "category": "性能优化",
+      "difficulty": "medium",
+      "follow_up": "React.lazy 加 Suspense 的 fallback 闪烁问题怎么处理？"
+    }
+  ]
+}
