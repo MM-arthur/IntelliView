@@ -27,3 +27,7 @@ exp/
 .screenshots/
 # 本地测试/自检脚本，不入库
 tests/
+# Python 打包产物，不入库
+build/
+dist/
+*.egg-info/

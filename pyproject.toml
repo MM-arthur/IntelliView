@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intelliview"
+version = "0.5.0"
+description = "AI interview coach that remembers your mistakes: error cards, spaced repetition, HTML report cards."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+keywords = ["interview", "ai", "spaced-repetition", "error-cards", "mcp", "agent"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business",
+]
+
+[project.optional-dependencies]
+cli = ["openai>=1.40"]
+mcp = ["mcp>=1.2"]
+all = ["intelliview[cli,mcp]"]
+
+[project.scripts]
+intelliview = "cli:main"
+
+[project.urls]
+Homepage = "https://github.com/MM-arthur/IntelliView"
+Issues = "https://github.com/MM-arthur/IntelliView/issues"
+
+[tool.setuptools]
+# 根目录的 cli.py / mcp_server.py 作为顶级模块；
+# intelliview-plugin/ 目录映射为 intelliview 包（引擎所在）。
+packages = ["intelliview"]
+py-modules = ["cli", "mcp_server"]
+package-dir = { intelliview = "intelliview-plugin" }
+
+[tool.setuptools.package-data]
+intelliview = ["plugin.json", "skills/**/*", "skills/**/**/*"]

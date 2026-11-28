@@ -4,7 +4,7 @@
 > spaced-repetition re-drills → visual report cards**. 100% local JSON data,
 > zero deployment, no server — runs inside your own AI agent.
 
-[中文文档](./README_zh.md) · [MIT License](./LICENSE)
+[中文文档](./README_zh.md) · [Changelog](./CHANGELOG.md) · [MIT License](./LICENSE)
 
 ## ✨ Why is this not "yet another AI mock-interview wrapper"?
 
@@ -16,7 +16,7 @@
 | Data | None | Session archive + user profile + recurring weaknesses + progress trend |
 | Reports | A text blob | Self-contained **HTML report card**: radar chart + ability cards + trend line |
 | Customization | Generic questions | Paste a JD → targeted question bank, auto-activated |
-| Runtimes | One | **QwenPaw plugin / MCP** (Claude Desktop, Cursor, Codex…) |
+| Runtimes | One | **QwenPaw plugin / MCP / CLI** (any agent, or just a terminal) |
 
 ## 🚀 Quick Start
 
@@ -44,7 +44,29 @@ Then just tell your agent: *"give me a mock interview"*, *"drill my error
 cards"*, or *"interview me against this JD"*. Data lives in `~/.intelliview`
 by default (override with `--data-dir`).
 
-### Option B: QwenPaw plugin
+### Option B: CLI (no agent host needed — just a terminal)
+
+```powershell
+git clone https://github.com/MM-arthur/IntelliView.git
+cd IntelliView
+pip install .            # or: pip install ".[cli]"
+set INTELLIVIEW_API_KEY=sk-...
+intelliview              # free chat (default command)
+intelliview interview    # a full mock interview
+intelliview drill        # today's error-card drills
+intelliview profile      # your profile — no LLM, reads local JSON
+intelliview cards        # browse the error deck
+intelliview history      # progress curve
+```
+
+Any OpenAI-compatible endpoint works:
+
+```powershell
+set INTELLIVIEW_BASE_URL=https://your-endpoint/v1
+set INTELLIVIEW_MODEL=your-model
+```
+
+### Option C: QwenPaw plugin
 
 ```powershell
 pip install qwenpaw
@@ -70,9 +92,12 @@ Session end ──→ 💾 archive (JSON+MD) + 🧑‍💼 profile + 📊 HTML r
 ```
 intelliview-plugin/
 ├── intelliview_core.py            # core engine: archive/profile/cards/bank/report (zero SDK deps)
+├── __init__.py                    # intelliview package (engine shared by all runtimes)
 ├── main.py                        # QwenPaw adapter (skills/hook/9 tools)
 └── skills/intelliview/SKILL.md    # 8 interview modes + scoring anchors
 mcp_server.py                      # MCP adapter (Claude / Cursor / Codex…)
+cli.py                             # CLI adapter (pip install → `intelliview` command)
+pyproject.toml                     # packaging + console script + [cli]/[mcp] extras
 ```
 
 The engine knows nothing about its host: QwenPaw and MCP each inject a
@@ -83,34 +108,16 @@ duck-typed `context` (storage / logger / media); all state is local JSON.
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Engine extraction + MCP adapter + de-personalization | ✅ v0.4 |
-| 1b | Standalone CLI (`pip install intelliview`) | ⏳ |
+| 1b | Standalone CLI (`pip install intelliview` / `intelliview` command) | ✅ v0.5 |
 | 2 | README hero GIF + demo data | ⏳ |
 | 3 | Open question banks (role packs + community PRs) | ⏳ |
 | 4 | Launch (Show HN / V2EX / awesome lists) | ⏳ |
-
-## 📈 The journey so far
-
-This repo doubles as an architecture evolution case study — every
-transformation was about cutting maintenance cost:
-
-| Stage | Form | Motivation |
-|---|---|---|
-| v1 | LangGraph monolith (11 nodes) + FastAPI + Vue | Self-built full stack: capable, but glue-heavy |
-| v2 | Multi-agent (Planner / Workers / Reporter, Send API + subgraphs) | Orchestration for scale — got more complex instead |
-| v3 | **QwenPaw plugin fork** (300+ files → 3) | Drop the self-built runtime, keep only domain logic |
-| v0.2 | Data foundation: archive + profile + hook injection + HTML report | Make conversations produce data |
-| v0.3 | Drill loop: auto error cards + spaced repetition + due nagging | Make data drive behavior change |
-| v0.4 | **Engine extraction + MCP adapter + open-sourcing** | Let any agent user run it in 5 minutes |
-
-**The method**: the agent-era product shape = core engine (pure logic) +
-thin adapters (QwenPaw / MCP / CLI) + generated artifacts (HTML report card).
-The UI is the chat window; rich output is a generated artifact.
 
 ## 🤝 Contributing
 
 - **Question banks** (opening in Phase 3): `questions/` role packs + PR template
 - Good first issues will be labeled soon
-- The engine/adapter boundary is clean — new runtime adapters welcome (CLI / Telegram / WeChat)
+- The engine/adapter boundary is clean — new runtime adapters welcome (Telegram / WeChat / Slack…)
 
 ## Credits
 
@@ -121,11 +128,3 @@ The UI is the chat window; rich output is a generated artifact.
 | **Nova** (OpenClaw) | 2026.04 | SqliteSaver persistence, intent routing, Docker |
 | **Vega** (Hermes Agent) | 2026.06 | Multi-agent v2, Send API, 14 parallel tools |
 | **GLM** | 2026.11 | v3 plugin fork → v0.4 engine extraction + MCP |
-
-## Milestones
-
-- 2026.06 Multi-agent v2 shipped (Planner / Workers / Send API)
-- 2026.11 QwenPaw plugin fork: LangGraph stack removed, 300+ files → 3
-- 2026.11 v0.2 data foundation: archive + profile + hook + HTML report cards
-- 2026.11 v0.3 drill loop: error cards + spaced repetition + due nagging
-- 2026.11 v0.4 open-source ready: engine extraction + MCP adapter + MIT

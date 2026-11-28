@@ -2,7 +2,9 @@
 """IntelliView MCP server —— 在任何 MCP 客户端（Claude Desktop / Cursor /
 Codex / Windsurf…）里启用 AI 面试教练：错题闭环 + 面试档案 + 可视化报告卡。
 
-运行时无依赖：数据全部落盘本地 JSON（默认 ~/.intelliview），不上传任何服务器。
+与 QwenPaw 插件 / CLI 共享同一个核心引擎（intelliview_core）与本地运行时
+上下文（LocalStorage / LocalMedia），数据全部落盘本地 JSON（默认
+~/.intelliview），不上传任何服务器。
 
 运行（stdio）：
     python mcp_server.py [--data-dir <目录>]
@@ -11,86 +13,31 @@ Claude Desktop / Cursor 配置示例见 README。
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 
 _HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE / "intelliview-plugin"))
 
-from intelliview_core import IntelliView  # noqa: E402
+try:  # pip 安装后的形态：intelliview 包
+    from intelliview.intelliview_core import IntelliView, LocalContext
+except ImportError:  # 仓库源码形态
+    sys.path.insert(0, str(_HERE / "intelliview-plugin"))
+    from intelliview_core import IntelliView, LocalContext  # noqa: E402
+
 from mcp.server.fastmcp import FastMCP  # noqa: E402
 
 engine = IntelliView()
 mcp = FastMCP("intelliview")
 
-_CTX = None
+_CTX: LocalContext | None = None
 
 
-class DirStorage:
-    """与 QwenPaw PluginStorage 同接口的本地文件存储。"""
-
-    def __init__(self, root: Path):
-        self._root = root.resolve()
-        self._root.mkdir(parents=True, exist_ok=True)
-
-    def _path(self, name: str) -> Path:
-        path = (self._root / name).resolve()
-        if not path.is_relative_to(self._root):
-            raise ValueError(f"storage path out of scope: {name}")
-        return path
-
-    async def aread_json(self, name, default=None):
-        path = self._path(name)
-        if not path.exists():
-            return default
-        return json.loads(path.read_text(encoding="utf-8"))
-
-    async def awrite_json(self, name, value):
-        path = self._path(name)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(value, ensure_ascii=False), encoding="utf-8",
-        )
-
-    async def awrite_bytes(self, name, data):
-        path = self._path(name)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-
-    async def aread_bytes(self, name):
-        return self._path(name).read_bytes()
-
-
-class DirMedia:
-    """本地媒体写入：HTML 报告卡落盘并返回 file:// URI。"""
-
-    def __init__(self, storage: DirStorage):
-        self._storage = storage
-
-    async def awrite(self, name, data, *, mime_type="application/octet-stream"):
-        await self._storage.awrite_bytes(name, data)
-        path = self._storage._path(name)
-        return SimpleNamespace(
-            url=path.as_uri(),
-            mime_type=mime_type,
-            name=Path(name).name,
-            preview_url=path.as_uri(),
-        )
-
-
-class EngineContext:
-    def __init__(self, data_dir: Path):
-        self.storage = DirStorage(data_dir)
-        self.media = DirMedia(self.storage)
-        self.logger = logging.getLogger("intelliview")
-
-
-def _ctx() -> EngineContext:
+def _ctx() -> LocalContext:
+    assert _CTX is not None, "server not initialized"
     return _CTX
+
 
 
 @mcp.tool()
@@ -291,7 +238,7 @@ def main() -> None:
         help="数据目录（默认 ~/.intelliview）",
     )
     args = parser.parse_args()
-    _CTX = EngineContext(Path(args.data_dir))
+    _CTX = LocalContext(args.data_dir)
     logging.basicConfig(level=logging.INFO)
     mcp.run()
 
