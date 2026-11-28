@@ -6,7 +6,12 @@
 
 [中文文档](./README_zh.md) · [Changelog](./CHANGELOG.md) · [MIT License](./LICENSE)
 
-![IntelliView CLI demo](docs/assets/demo.gif)
+[![CI](https://github.com/MM-arthur/IntelliView/actions/workflows/question-packs.yml/badge.svg)](https://github.com/MM-arthur/IntelliView/actions/workflows/question-packs.yml)
+[![Question packs](https://img.shields.io/badge/question%20packs-13-green)](questions/README.md)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+
+![IntelliView CLI demo](docs/assets/demo-en.gif)
 
 ## ✨ Why is this not "yet another AI mock-interview wrapper"?
 

@@ -5,6 +5,11 @@
 
 [English](./README.md) · [更新日志](./CHANGELOG.md) · [MIT License](./LICENSE)
 
+[![CI](https://github.com/MM-arthur/IntelliView/actions/workflows/question-packs.yml/badge.svg)](https://github.com/MM-arthur/IntelliView/actions/workflows/question-packs.yml)
+[![Question packs](https://img.shields.io/badge/question%20packs-13-green)](questions/README.md)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+
 ![IntelliView CLI 演示](docs/assets/demo.gif)
 
 ## ✨ 与"又一个 AI 模拟面试"有何不同
