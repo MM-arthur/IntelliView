@@ -1,0 +1,88 @@
+{
+  "id": "ai-agent-engineering",
+  "position": "AI Agent 系统设计工程师",
+  "description": "覆盖 Agentic AI 架构范式、上下文工程、长程任务与断点续传、记忆系统、Multi-Agent 协作与 AI Friendly 架构的题库，对齐 2026 前沿工程实践。",
+  "version": 1,
+  "key_points": [
+    "AI Friendly 架构范式",
+    "上下文工程",
+    "长程任务与断点续传",
+    "记忆系统",
+    "Multi-Agent 协作",
+    "环境与验证驱动"
+  ],
+  "questions": [
+    {
+      "question": "AI Friendly 架构讲的三个范式转变——确定性→概率性、结构化→语义化、静态→动态——分别对应 AI 的什么特性冲突？",
+      "category": "架构范式",
+      "difficulty": "medium",
+      "follow_up": "「把概率性输出收敛到安全区间」具体怎么落地？举一个你见过的兜底/降级设计，并说明它的安全边界在哪里。"
+    },
+    {
+      "question": "Context Engineering 和 Prompt Engineering 是一回事吗？上下文预算超限时你会怎么取舍？",
+      "category": "上下文工程",
+      "difficulty": "hard",
+      "follow_up": "长程任务里历史信息、工具结果、知识库注入互相挤占预算，你的优先级规则是什么？什么信息必须持久化而不是留在上下文里？"
+    },
+    {
+      "question": "长程 Agent 的断点续传：框架自带 Checkpoint 有哪些覆盖不到的坑（多工具调用、消息顺序、子图会话）？",
+      "category": "长程任务",
+      "difficulty": "hard",
+      "follow_up": "toolA 执行完、toolB 执行中进程崩溃，恢复时会发生什么？你会在业务层怎么补齐这种原子性？"
+    },
+    {
+      "question": "Agent 的跨会话长期记忆目前普遍「检索准了，但跨会话推理、动态更新、冲突解决仍然弱」。你的记忆系统设计会怎么应对这三点？",
+      "category": "记忆系统",
+      "difficulty": "hard",
+      "follow_up": "记忆写入策略（什么时候存、存什么粒度）和检索策略（关键词/语义/时间衰减）你会分别怎么设计？冲突记忆以哪条为准？"
+    },
+    {
+      "question": "Loop Engineering 的核心是什么？人在这套闭环里还剩下什么职责？",
+      "category": "工作流范式",
+      "difficulty": "medium",
+      "follow_up": "Agent 什么时候必须停手、把决定权交回给人？你会设置哪些停机条件（预算/风险/不可逆操作）？"
+    },
+    {
+      "question": "「从 Spec 驱动转向环境与验证驱动」——为什么写得再好的 Spec 也撑不住 Agent 的不确定性？",
+      "category": "环境与验证",
+      "difficulty": "hard",
+      "follow_up": "「可验证的反馈」是 Agent 的能力边界：一个无法写测试、无法自动比对的业务需求，你会怎么给它造验证环境？"
+    },
+    {
+      "question": "什么情况下该拆 Multi-Agent，什么情况下单 Agent 加子工具就够？给出你的拆分判据。",
+      "category": "Multi-Agent",
+      "difficulty": "medium",
+      "follow_up": "拆多 Agent 后出现「各干各的、上下文不同步」，你怎么治理？共享状态、消息协议还是编排者？各自代价？"
+    },
+    {
+      "question": "AI Native 团队的闭环是「知识底座 + Agent + 人」。为什么单点 AI 提效经常全局无效？",
+      "category": "团队协同",
+      "difficulty": "hard",
+      "follow_up": "业务横向拆碎（各团队 KPI 打架）和产研流程纵向拆碎（人肉传话），哪一种更难被 Agent 化修复？为什么？"
+    },
+    {
+      "question": "AI Friendly API 和传统 API 设计有什么本质差异？给模型消费的接口要注意什么？",
+      "category": "接口设计",
+      "difficulty": "medium",
+      "follow_up": "错误信息写给模型看和写给人看有什么不同？一次失败的工具调用怎么设计才能让 Agent 自己恢复而不是死循环？"
+    },
+    {
+      "question": "怎么判断一个场景到底适不适合 Agent 化？给出你的评估维度清单。",
+      "category": "场景评估",
+      "difficulty": "easy",
+      "follow_up": "「为用 AI 而用 AI」的典型症状是什么？如果一个流程 90% 是确定性规则 + 10% 理解，你会怎么切？"
+    },
+    {
+      "question": "Agent 的规划（Plan）环节有哪些典型失败模式？你见过或预期哪些？",
+      "category": "规划与执行",
+      "difficulty": "medium",
+      "follow_up": "计划过于乐观、步骤间隐含依赖没暴露、中途目标漂移——分别用什么机制纠偏？re-plan 的触发条件怎么定？"
+    },
+    {
+      "question": "Agent 在真实企业环境里取数、调工具，信任问题怎么解决？",
+      "category": "可信与安全",
+      "difficulty": "medium",
+      "follow_up": "「信任需要基础设施」：权限、口径、审计分别落在哪一层？工具调用全量留痕会带来什么成本，你怎么取舍？"
+    }
+  ]
+}

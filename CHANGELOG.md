@@ -4,6 +4,20 @@
 
 > 本项目同时是一部**架构演化史**：从 LangGraph 全栈单体 → 多 Agent 编排 → QwenPaw 插件 → 一引擎多适配器。完整演化过程（含架构图与升级路径）见文末[「附录 · 架构演化史」](#附录--架构演化史)。
 
+## [0.8.0] - 2026-11-28
+
+### Added
+
+- **AI 工程方向题库（4 个新岗位包，对齐 2026 前沿实践）**：
+  - `ai-agent-engineering`：AI Friendly 架构三范式 / 上下文工程 / 长程任务断点续传 / 记忆系统 / Loop Engineering / 环境与验证驱动
+  - `ai-coding-practice`：Skills 体系 / SDD / AI Native SDLC（intent.md、CLAUDE.md）/ 质量门禁 / 知识库沉淀 / 提效度量
+  - `agent-evaluation`：离线门控 + 在线监控双 Loop / Trajectory vs Response / Case 挖掘归因 / 观测基建 / 记忆评测
+  - `rag-semantic-stack`：RAG→LightRAG / 语义层与逻辑表 / 指标依赖树 / 可信取数 / Text2SQL 失败模式
+
+### Changed
+
+- 题库总量 9 → 13 包，`questions/README.md` 按「AI 工程方向 / 通用技术方向」分组展示。
+
 ## [0.7.0] - 2026-11-28
 
 ### Added

@@ -1,0 +1,88 @@
+{
+  "id": "agent-evaluation",
+  "position": "Agent 评测工程师",
+  "description": "覆盖离线评测门控、在线评测与监控、Trajectory vs Response、Case 挖掘与归因、观测基建与记忆系统评测的题库。",
+  "version": 1,
+  "key_points": [
+    "评测体系设计",
+    "离线评测与门控",
+    "在线评测与监控",
+    "Trajectory 评测",
+    "Case 挖掘与归因",
+    "观测基建"
+  ],
+  "questions": [
+    {
+      "question": "一个完备的 Agent 评测体系长什么样？「两条相互咬合的 Loop」指哪两条？",
+      "category": "评测体系",
+      "difficulty": "medium",
+      "follow_up": "离线 Loop 和在线 Loop 各自的输入输出是什么？它们在哪里交汇（提示：巡检）？"
+    },
+    {
+      "question": "为什么说离线评测的本质是「变更的门控」，评测集是评测体系的核心资产？",
+      "category": "离线评测",
+      "difficulty": "easy",
+      "follow_up": "评测集腐化（题被模型背过、分布漂移）你怎么发现和治理？回测的通过线怎么定才不形同虚设？"
+    },
+    {
+      "question": "Trajectory Evaluation 和 Response Evaluation 分别评什么？各自适合什么 Agent？",
+      "category": "评测方法论",
+      "difficulty": "medium",
+      "follow_up": "只看结果会放过「蒙对的过程」（错误工具链碰巧得到对答案），只看轨迹会惩罚有效捷径。你的组合策略是什么？"
+    },
+    {
+      "question": "在线评测有哪几种手段？在线监控该关注哪些信号？",
+      "category": "在线评测",
+      "difficulty": "hard",
+      "follow_up": "线上没有 ground-truth 时你会用什么代理信号先报警？人工反馈样本有严重幸存者偏差，怎么校正？"
+    },
+    {
+      "question": "Bad Case 从哪些来源挖掘？Good Case 和 Bad Case 池为什么要分化管理？",
+      "category": "Case 挖掘",
+      "difficulty": "medium",
+      "follow_up": "归因怎么做才能从「这里出了问题」走到「为什么出问题」？工具错、规划错、检索错、生成错分别怎么定位？"
+    },
+    {
+      "question": "主观评测怎么对齐？「人人一致、人机一致」的方法论落地步骤？",
+      "category": "主观评测",
+      "difficulty": "medium",
+      "follow_up": "标注员之间一致性系数低（Kappa < 0.6）时，先改评分标准还是先换 LLM judge？为什么？"
+    },
+    {
+      "question": "为什么说观测是评测的地基？短程 Agent 和长程 Agent 的观测差异在哪？",
+      "category": "观测基建",
+      "difficulty": "hard",
+      "follow_up": "全链路 trace 级留存的成本很高，你会怎么分级采样？出问题时没采到的那部分怎么办？"
+    },
+    {
+      "question": "Agent 长期记忆系统的评测要看哪些维度？",
+      "category": "记忆评测",
+      "difficulty": "hard",
+      "follow_up": "准确检索、长程理解、冲突解决、反思记忆四个维度分别怎么构造测试？哪个维度当前模型最弱？"
+    },
+    {
+      "question": "Agent 评测和传统模型评测最本质的差异是什么？",
+      "category": "评测方法论",
+      "difficulty": "easy",
+      "follow_up": "为什么「一个分数」对 Agent 基本无效？能力雷达之外，稳定性（同输入不同输出的方差）要不要进报告？"
+    },
+    {
+      "question": "LLM-as-judge 有哪些系统性偏差？怎么治理？",
+      "category": "评测方法论",
+      "difficulty": "hard",
+      "follow_up": "位置偏好、长度偏好、自我偏好分别怎么出现？你能设计一个实验证明你的 judge 存在其中一种偏好吗？"
+    },
+    {
+      "question": "评测体系成熟度怎么自查？从「打分动作」到「基础设施能力」差在哪几步？",
+      "category": "体系成熟度",
+      "difficulty": "medium",
+      "follow_up": "「评测跑在 CI 里自动门控」和「人工想起来跑一下」之间，组织上和技术上分别要补什么？"
+    },
+    {
+      "question": "专家知识怎么进入评测体系，补模型在垂域场景的不足？",
+      "category": "垂域评测",
+      "difficulty": "medium",
+      "follow_up": "专家标注贵且慢，怎么用最少专家标注量撬动最大评测覆盖（主动学习/分层抽样/合成放大）？"
+    }
+  ]
+}

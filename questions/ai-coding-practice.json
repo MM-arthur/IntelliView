@@ -1,0 +1,88 @@
+{
+  "id": "ai-coding-practice",
+  "position": "AI Coding / AI Native 研发工程师",
+  "description": "覆盖 Skills 体系、SDD、AI Native SDLC、质量门禁、知识库沉淀与团队级 AI Coding 交付的题库，对齐大厂 2026 落地实践。",
+  "version": 1,
+  "key_points": [
+    "Skills 体系",
+    "SDD 与 AI Native SDLC",
+    "质量门禁",
+    "知识库与经验沉淀",
+    "验证驱动",
+    "提效度量"
+  ],
+  "questions": [
+    {
+      "question": "面向 Skills 编程和普通对话式编程的本质区别是什么？为什么垂直领域要建 Skills 而不是堆提示词？",
+      "category": "Skills 体系",
+      "difficulty": "medium",
+      "follow_up": "Skill 的分层架构你会怎么切（通用/领域/场景）？Skill 版本化失效（业务变了 Skill 没跟）怎么发现和修复？"
+    },
+    {
+      "question": "一个团队想引入 Skills，你会先用哪几个维度评估场景值不值得做？",
+      "category": "Skills 体系",
+      "difficulty": "easy",
+      "follow_up": "低频但高价值的场景 vs 高频但标准化的场景，哪种优先级更高？各自的 ROI 怎么算？"
+    },
+    {
+      "question": "SDD 流水线里「评估报告 → 技术方案 → 代码生产」每个阶段人和 AI 的分工边界在哪？",
+      "category": "SDD 实践",
+      "difficulty": "hard",
+      "follow_up": "哪个阶段最不该放手给 AI？为什么很多人在技术方案阶段翻车而不是代码阶段？"
+    },
+    {
+      "question": "「Code is no longer the bottleneck」之后，AI Native SDLC 六阶段里真正的瓶颈变成了什么？",
+      "category": "AI Native SDLC",
+      "difficulty": "medium",
+      "follow_up": "intent.md / plan / CLAUDE.md 这些产物各自固化了什么？哪些信息必须写进 repo 而不是留在对话历史里？"
+    },
+    {
+      "question": "AI 生成代码的质量门禁怎么设计才能既拦住坏代码又不拖垮节奏？",
+      "category": "质量门禁",
+      "difficulty": "medium",
+      "follow_up": "单测覆盖率门禁对 AI 代码有盲区（测试也是 AI 写的、一起骗过门禁），你会加什么防线？"
+    },
+    {
+      "question": "知识库要让「AI 越用越懂业务」，经验怎么从个人沉淀成团队资产？闭环长什么样？",
+      "category": "知识库",
+      "difficulty": "hard",
+      "follow_up": "知识的半衰期问题：业务规则改了、知识库没更新，AI 会持续输出过时结论。你怎么设计更新触发机制？"
+    },
+    {
+      "question": "CLAUDE.md / AGENTS.md 这类项目说明文件，你会写什么、坚决不写什么？",
+      "category": "AI Native SDLC",
+      "difficulty": "easy",
+      "follow_up": "「Things Claude gets wrong」这一节为什么价值最高？它和 FAQ 的区别是什么？"
+    },
+    {
+      "question": "为什么端到端交付里「Demo 驱动」会比「文档驱动」更适配 AI 协作？",
+      "category": "工作流",
+      "difficulty": "medium",
+      "follow_up": "Demo 驱动的风险是什么（演示可用、边界未测）？怎么补齐验收 rigor？"
+    },
+    {
+      "question": "AI Coding 提效怎么度量才不会被「爽感」骗？给出你的指标设计。",
+      "category": "提效度量",
+      "difficulty": "hard",
+      "follow_up": "个人编码速度提升 30%，但评审返工率和测试成本上升，端到端算下来可能为负。哪些环节必须纳入度量？"
+    },
+    {
+      "question": "AI 时代研发工程师的核心竞争力迁移到了哪里？",
+      "category": "角色演化",
+      "difficulty": "easy",
+      "follow_up": "「定义验收标准的能力」为什么变成了第一技能？一个没有客观验收标准的需求，AI 时代会变得更容易还是更难交付？"
+    },
+    {
+      "question": "团队级 AI Coding 落地时，知识库、RD 流程、质量门禁三者的建设顺序怎么排？",
+      "category": "落地路径",
+      "difficulty": "medium",
+      "follow_up": "为什么很多团队先买了工具最后失败？如果只能先建一个，你选哪个，依据是什么？"
+    },
+    {
+      "question": "AI 生成的代码出了线上事故，责任归属和复盘流程怎么设计？",
+      "category": "工程治理",
+      "difficulty": "medium",
+      "follow_up": "「代码是 AI 写的」能不能减轻 review 责任？复盘时怎么区分提示词问题、知识库问题和模型能力问题？"
+    }
+  ]
+}

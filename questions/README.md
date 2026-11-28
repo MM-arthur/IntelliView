@@ -12,14 +12,25 @@ intelliview interview                      # 按题库开面
 
 ## 现有岗位包
 
+### AI 工程方向（2026 新增）
+
+| ID | 岗位 | 题量 |
+|---|---|---|
+| `ai-agent-engineering` | AI Agent 系统设计工程师 | 12 |
+| `ai-coding-practice` | AI Coding / AI Native 研发工程师 | 12 |
+| `agent-evaluation` | Agent 评测工程师 | 12 |
+| `rag-semantic-stack` | LLM 应用工程师（RAG / 语义层） | 12 |
+
+### 通用技术方向
+
 | ID | 岗位 | 题量 |
 |---|---|---|
 | `backend-python` | Python 后端开发工程师 | 12 |
+| `backend-java` | Java 后端开发工程师 | 12 |
+| `backend-go` | Go 后端开发工程师 | 12 |
 | `frontend-react` | 前端开发工程师（React） | 12 |
 | `algorithm-fundamentals` | 算法与数据结构基础（通用） | 12 |
 | `algorithm-advanced` | 算法与数据结构进阶（通用） | 12 |
-| `backend-java` | Java 后端开发工程师 | 12 |
-| `backend-go` | Go 后端开发工程师 | 12 |
 | `ml-engineer` | 机器学习 / 算法工程师 | 12 |
 | `product-manager` | 产品经理（C 端/策略向） | 12 |
 | `behavioral-english` | Behavioral Interview (English) | 12 |

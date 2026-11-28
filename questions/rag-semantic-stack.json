@@ -1,0 +1,88 @@
+{
+  "id": "rag-semantic-stack",
+  "position": "LLM 应用工程师（RAG / 语义层）",
+  "description": "覆盖 RAG→LightRAG 升级、语义层与逻辑表、可信取数、Text2SQL 失败模式与 RAG 评测的题库。",
+  "version": 1,
+  "key_points": [
+    "RAG 与 LightRAG",
+    "语义层设计",
+    "指标与逻辑表",
+    "可信取数",
+    "Text2SQL",
+    "RAG 评测"
+  ],
+  "questions": [
+    {
+      "question": "传统 RAG 的结构性局限是什么？LightRAG 类方案（图谱化、分层检索）分别补什么？",
+      "category": "RAG 架构",
+      "difficulty": "medium",
+      "follow_up": "碎片化 chunk 检索为什么会答错全局性问题（如「A 和 C 的关系」）？图谱构建本身的成本和错误率你怎么控制？"
+    },
+    {
+      "question": "通用大模型为什么取不准业务数？语义层补的到底是什么上下文？",
+      "category": "语义层",
+      "difficulty": "easy",
+      "follow_up": "GMV 的计算公式、异常数据过滤规则、数据在哪张表——这三类知识分别应该沉淀在哪一层？"
+    },
+    {
+      "question": "逻辑表和物理表解耦是怎么实现的？加速表和主表的绑定切换对上层意味着什么？",
+      "category": "语义层",
+      "difficulty": "hard",
+      "follow_up": "同一指标绑 DWD 主表和 DWS 加速表，口径必须完全一致——这个一致性由什么保证？谁来校验？"
+    },
+    {
+      "question": "原子指标、派生指标、组合指标构成一棵依赖树，这个设计解决什么问题？",
+      "category": "指标体系",
+      "difficulty": "hard",
+      "follow_up": "依赖树上某个底层口径改了，下游派生指标的下游（报表、API、Agent 回答）怎么感知并级联更新？"
+    },
+    {
+      "question": "「AI 可靠取数 = 信任需要基础设施」：权限、口径、审计分别怎么落？",
+      "category": "可信取数",
+      "difficulty": "medium",
+      "follow_up": "Agent 自助取数后出了口径事故（把含退款的下单量当成 GMV 报给了老板），你从哪层复盘、加什么防线？"
+    },
+    {
+      "question": "Text2SQL 的典型失败模式有哪些？语义层能救其中哪几个？",
+      "category": "Text2SQL",
+      "difficulty": "medium",
+      "follow_up": "模糊指代、跨表 join 关系缺失、方言/函数幻觉、时间口径歧义——分别属于模型问题还是 schema 暴露问题？"
+    },
+    {
+      "question": "数仓架构里「语义成为新的分层」之后，知识存储发生了什么变化？",
+      "category": "数据架构",
+      "difficulty": "medium",
+      "follow_up": "语义层是给 AI 用的还是也给人用？人和 AI 共用一套语义定义，最大的治理挑战是什么？"
+    },
+    {
+      "question": "RAG 系统的评测应该分哪几层？各层指标是什么？",
+      "category": "RAG 评测",
+      "difficulty": "medium",
+      "follow_up": "检索质量（召回/精度）和回答忠实度（faithfulness）哪个是当前主要瓶颈？引用原文片段能证明忠实吗？"
+    },
+    {
+      "question": "RAG 的幻觉治理分几层防线？拒答兜底放在哪一层？",
+      "category": "幻觉治理",
+      "difficulty": "medium",
+      "follow_up": "「引用了正确片段但推理错了」和「推理对了但引用了错误片段」，哪类更危险？分别怎么修？"
+    },
+    {
+      "question": "语义图谱 / Meta-ontology 在语义层里承担什么角色？",
+      "category": "语义建模",
+      "difficulty": "hard",
+      "follow_up": "本体建模的粒度怎么定？太粗（复用差）和太细（爆炸难维护）之间的平衡点怎么找？"
+    },
+    {
+      "question": "数据研发范式在 AI 时代怎么变？人的角色迁移到哪里？",
+      "category": "研发范式",
+      "difficulty": "easy",
+      "follow_up": "「理解需求、定义口径、治理语义」变成核心工作之后，写 SQL 这项技能的价值怎么重估？"
+    },
+    {
+      "question": "什么情况下不该上 RAG 或语义层？怎么避免「为用 AI 而用 AI」？",
+      "category": "架构决策",
+      "difficulty": "easy",
+      "follow_up": "一个 50 张表的稳定小系统，直接喂 schema 给模型可能就够了——你的升级触发信号是什么？"
+    }
+  ]
+}
