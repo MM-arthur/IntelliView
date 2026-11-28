@@ -134,28 +134,8 @@ python cli.py bank validate questions  # 贡献者自检
 题包格式与质量要求见 [`questions/README.md`](./questions/README.md) +
 [JSON Schema](./questions/question-pack.schema.json)，欢迎 PR 🎉
 
-## 🗺 路线图（高星计划）
-
-| 阶段 | 内容 | 状态 |
-|---|---|---|
-| Phase 1 | 引擎抽离 + MCP 适配器 + 去个人化 | ✅ v0.4 |
-| Phase 1b | 独立 CLI（`pip install intelliview` / `intelliview` 命令） | ✅ v0.5 |
-| Phase 2 | README 首屏 GIF demo + 演示数据 | ✅ v0.6 |
-| Phase 3 | 开源题库（岗位包 + 社区 PR 流） | ✅ v0.6 |
-| Phase 4 | 发布运营（Show HN / V2EX / awesome lists） | ⏳ |
-
 ## 🤝 贡献
 
 - **题库贡献**：在 [`questions/`](./questions/README.md) 加一个岗位包 —— Schema、校验器、PR checklist 都已就绪
 - good first issues 即将标注
 - 引擎与适配器边界清晰，欢迎新的运行时适配器（Telegram / 微信 / Slack…）
-
-## 协作记录
-
-| Agent | 加入 | 贡献 |
-|---|---|---|
-| **Arthur**（仓库所有者） | — | 产品方向、密钥、需求把控 |
-| **Claude Code** | 早期 | v1 核心：11 节点图、RAG、语音/OCR、UI |
-| **Nova**（OpenClaw） | 2026.04 | SqliteSaver 持久化、意图路由、Docker |
-| **Vega**（Hermes Agent） | 2026.06 | 多 Agent v2、Send API、14 工具并行 |
-| **GLM** | 2026.11 | v3 插件化 → v0.4 引擎抽离 + MCP |

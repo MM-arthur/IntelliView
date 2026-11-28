@@ -137,28 +137,8 @@ Custom packs without a PR: drop JSON into `~/.intelliview/question_packs/`.
 Pack format and quality bar: [`questions/README.md`](./questions/README.md) +
 [JSON schema](./questions/question-pack.schema.json) — PRs welcome 🎉
 
-## 🗺 Roadmap (the high-star plan)
-
-| Phase | Scope | Status |
-|---|---|---|
-| 1 | Engine extraction + MCP adapter + de-personalization | ✅ v0.4 |
-| 1b | Standalone CLI (`pip install intelliview` / `intelliview` command) | ✅ v0.5 |
-| 2 | README hero GIF + demo data | ✅ v0.6 |
-| 3 | Open question banks (role packs + community PRs) | ✅ v0.6 |
-| 4 | Launch (Show HN / V2EX / awesome lists) | ⏳ |
-
 ## 🤝 Contributing
 
 - **Question banks**: add a pack in [`questions/`](./questions/README.md) — schema + validator + PR checklist ready
 - Good first issues will be labeled soon
 - The engine/adapter boundary is clean — new runtime adapters welcome (Telegram / WeChat / Slack…)
-
-## Credits
-
-| Agent | Joined | Contributions |
-|---|---|---|
-| **Arthur** (owner) | — | Product direction, keys, requirements |
-| **Claude Code** | early | v1 core: 11-node graph, RAG, voice/OCR, UI |
-| **Nova** (OpenClaw) | 2026.04 | SqliteSaver persistence, intent routing, Docker |
-| **Vega** (Hermes Agent) | 2026.06 | Multi-agent v2, Send API, 14 parallel tools |
-| **GLM** | 2026.11 | v3 plugin fork → v0.4 engine extraction + MCP |
