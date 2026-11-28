@@ -1,0 +1,88 @@
+{
+  "id": "behavioral-english",
+  "position": "Behavioral Interview (English, general)",
+  "description": "English behavioral questions in the big-tech STAR style. Every follow-up probes for specifics: numbers, decisions, and what you actually changed.",
+  "version": 1,
+  "key_points": [
+    "STAR storytelling",
+    "Leadership without authority",
+    "Conflict resolution",
+    "Failure and learning",
+    "Prioritization",
+    "Impact quantification"
+  ],
+  "questions": [
+    {
+      "question": "Tell me about a project you are most proud of. What was your specific contribution, and what would have happened without you?",
+      "category": "Ownership",
+      "difficulty": "easy",
+      "follow_up": "Give me the number that proves impact. If you did not measure it, how would you measure it next time?"
+    },
+    {
+      "question": "Describe a time you disagreed with your manager or a senior engineer. How did you handle it, and what was the outcome?",
+      "category": "Conflict",
+      "difficulty": "medium",
+      "follow_up": "What did you learn about when to push back and when to commit? What signal told you it was time to stop arguing?"
+    },
+    {
+      "question": "Tell me about your biggest professional failure. Not a disguised success story — a real failure.",
+      "category": "Failure",
+      "difficulty": "medium",
+      "follow_up": "What did you change in your own behavior afterwards? Concretely, not 'I learned to communicate better'."
+    },
+    {
+      "question": "Describe a time you had to deliver with a deadline you believed was impossible.",
+      "category": "Prioritization",
+      "difficulty": "medium",
+      "follow_up": "Walk me through what you cut and what you refused to cut. Who did you negotiate with, and what did you trade?"
+    },
+    {
+      "question": "Tell me about a time you influenced a decision without having any formal authority.",
+      "category": "Leadership",
+      "difficulty": "medium",
+      "follow_up": "Who resisted you the most, and what was their legitimate concern? How did you address it instead of overriding it?"
+    },
+    {
+      "question": "Describe a situation where you had to make a call with incomplete data and the cost of waiting was high.",
+      "category": "Decision-making",
+      "difficulty": "hard",
+      "follow_up": "What was the worst-case scenario of your call? What was your rollback plan if it went wrong?"
+    },
+    {
+      "question": "Tell me about a time you received harsh or unfair feedback. What did you do in the following two weeks?",
+      "category": "Growth mindset",
+      "difficulty": "medium",
+      "follow_up": "Which part of the feedback turned out to be right after all? Which part did you consciously decide not to act on?"
+    },
+    {
+      "question": "Describe a time you fixed something that was technically 'not your job'.",
+      "category": "Ownership",
+      "difficulty": "easy",
+      "follow_up": "How did you balance this against your actual deliverables? Did your manager know, and should they have?"
+    },
+    {
+      "question": "Tell me about a conflict between two teammates that you helped resolve.",
+      "category": "Collaboration",
+      "difficulty": "medium",
+      "follow_up": "What did each side want that the other side did not understand? Did you solve the problem or just the relationship?"
+    },
+    {
+      "question": "Describe the most technically difficult problem you have solved. Take me through your reasoning from symptom to root cause.",
+      "category": "Problem-solving",
+      "difficulty": "hard",
+      "follow_up": "What were your two dead-end hypotheses, and what evidence killed each of them?"
+    },
+    {
+      "question": "Tell me about a time you pushed back on a customer or stakeholder request that you believed was wrong for the product.",
+      "category": "Product judgment",
+      "difficulty": "hard",
+      "follow_up": "How did you distinguish 'customer is wrong' from 'I am wrong'? What compromise did you end up making?"
+    },
+    {
+      "question": "Why this role, and why now? Connect it to specific things you have done, not generic enthusiasm.",
+      "category": "Motivation",
+      "difficulty": "easy",
+      "follow_up": "What is the strongest counter-argument to your own motivation — the reason you might leave in 18 months?"
+    }
+  ]
+}

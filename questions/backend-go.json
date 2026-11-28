@@ -1,0 +1,88 @@
+{
+  "id": "backend-go",
+  "position": "Go 后端开发工程师",
+  "description": "覆盖 GMP 调度、channel、GC、slice/map 底层、并发模式与性能排查的 Go 后端题库。",
+  "version": 1,
+  "key_points": [
+    "Goroutine 与 GMP 调度",
+    "Channel",
+    "内存与 GC",
+    "Slice 与 Map 底层",
+    "错误处理与 Context",
+    "性能排查"
+  ],
+  "questions": [
+    {
+      "question": "讲讲 Go 的 GMP 调度模型：G、M、P 分别是什么？为什么要有 P？",
+      "category": "GMP 调度",
+      "difficulty": "medium",
+      "follow_up": "GOMAXPROCS 设成 1 时goroutine 还能并发吗？系统调用阻塞 M 时调度器会怎么处理？"
+    },
+    {
+      "question": "channel 的底层结构是什么样的？向已 close 的 channel 读、写分别会发生什么？",
+      "category": "Channel",
+      "difficulty": "medium",
+      "follow_up": "怎么安全地关闭一个有多个发送者的 channel？为什么由接收方关闭不行？"
+    },
+    {
+      "question": "什么是 goroutine 泄漏？列举至少 3 种典型泄漏场景和对应的修复方式。",
+      "category": "Goroutine",
+      "difficulty": "medium",
+      "follow_up": "怎么在线上系统里定位发生了 goroutine 泄漏？你会看哪些指标和工具？"
+    },
+    {
+      "question": "sync.Mutex 和 channel 各自适合什么并发场景？给出你的选型判断标准。",
+      "category": "并发模式",
+      "difficulty": "easy",
+      "follow_up": "用 channel 做信号量限流时，缓冲大小和许可获取顺序分别怎么设计？"
+    },
+    {
+      "question": "slice 作为参数传入函数后 append，为什么调用方常常看不到新增元素？讲讲 slice 底层结构。",
+      "category": "Slice",
+      "difficulty": "medium",
+      "follow_up": "扩容后共享底层数组会引发什么隐蔽 bug？用 copy 或返回值各解决什么问题？"
+    },
+    {
+      "question": "并发读写 map 会发生什么？sync.Map 和 mutex+map 各自适合什么场景？",
+      "category": "Map",
+      "difficulty": "medium",
+      "follow_up": "sync.Map 的 read/dirty 双结构是怎么减少锁竞争的？什么场景下它反而更慢？"
+    },
+    {
+      "question": "defer 的执行顺序是什么？列举两个 defer 的经典陷阱。",
+      "category": "语法与语义",
+      "difficulty": "easy",
+      "follow_up": "defer + recover 捕获 panic 的位置有什么限制？为什么 goroutine 里的 panic 不能被外层 recover？"
+    },
+    {
+      "question": "context 的取消是怎么传播的？一个 HTTP 请求链路里你会怎么传 context？",
+      "category": "Context",
+      "difficulty": "medium",
+      "follow_up": "为什么不应该把 context 存进结构体字段？什么字段例外？"
+    },
+    {
+      "question": "讲讲 Go GC 的三色标记 + 混合写屏障：STW 发生在哪些阶段？",
+      "category": "内存与 GC",
+      "difficulty": "hard",
+      "follow_up": "GC 触发的 GOGC 参数是怎么影响吞吐和内存占用的？内存逃逸和 GC 压力是什么关系？"
+    },
+    {
+      "question": "Go 的错误处理惯例是什么？errors.Is / errors.As 分别解决什么问题？",
+      "category": "错误处理",
+      "difficulty": "easy",
+      "follow_up": "fmt.Errorf %w 包装错误后，中间层想追加信息又要保留根因，应该怎么写？"
+    },
+    {
+      "question": "线上 Go 服务接口变慢，你会怎么用 pprof 定位 CPU 热点和内存分配？",
+      "category": "性能排查",
+      "difficulty": "hard",
+      "follow_up": "pprof 的 cumulative 和 flat 时间分别怎么看？采样率对结论可靠性有什么影响？"
+    },
+    {
+      "question": "设计一个可优雅退出的 HTTP 服务：收到 SIGTERM 后要完成哪些事，顺序是什么？",
+      "category": "工程实践",
+      "difficulty": "medium",
+      "follow_up": "超时强杀兜底和 in-flight 请求排空冲突时，你会把超时设成多少？依据是什么？"
+    }
+  ]
+}

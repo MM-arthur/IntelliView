@@ -124,7 +124,7 @@ docs/assets/                       # 演示 GIF + 报告卡截图
 答错的题照常进错题本：
 
 ```powershell
-intelliview bank list                  # 3 个初始岗位包 + 你的自定义包
+intelliview bank list                  # 9 个开源岗位包 + 你的自定义包
 intelliview bank show backend-python   # 预览
 intelliview bank use backend-python    # 导入并激活
 python cli.py bank validate questions  # 贡献者自检

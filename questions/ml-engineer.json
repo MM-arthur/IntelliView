@@ -1,0 +1,88 @@
+{
+  "id": "ml-engineer",
+  "position": "机器学习 / 算法工程师",
+  "description": "覆盖经典 ML、深度学习、LLM 应用（RAG/微调）、评估与线上化监控的算法工程师题库。",
+  "version": 1,
+  "key_points": [
+    "机器学习基础",
+    "深度学习",
+    "特征工程",
+    "LLM 与 RAG",
+    "离线评估",
+    "线上化与监控"
+  ],
+  "questions": [
+    {
+      "question": "怎么判断一个模型过拟合了？训练/验证曲线分别长什么样？给出你的处理优先级。",
+      "category": "机器学习基础",
+      "difficulty": "easy",
+      "follow_up": "正则、dropout、数据增强、早停分别作用于哪个环节？为什么不能全堆上去？"
+    },
+    {
+      "question": "讲讲偏差-方差权衡：模型容量、数据量、噪声分别影响哪一项？",
+      "category": "机器学习基础",
+      "difficulty": "medium",
+      "follow_up": "Bagging 和 Boosting 分别主要降低偏差还是方差？为什么？"
+    },
+    {
+      "question": "L1 和 L2 正则化的几何直觉是什么？为什么 L1 倾向产生稀疏解？",
+      "category": "机器学习基础",
+      "difficulty": "medium",
+      "follow_up": "L1 的非处处可导在优化上怎么处理？L1 稀疏性和特征选择是怎么联系起来的？"
+    },
+    {
+      "question": "Transformer 的 self-attention 里为什么要除以 sqrt(d_k)？不除会发生什么？",
+      "category": "深度学习",
+      "difficulty": "hard",
+      "follow_up": "除以 sqrt(d_k) 之后 softmax 的输入分布怎么变？这对梯度传播有什么影响？"
+    },
+    {
+      "question": "BatchNorm 和 LayerNorm 分别怎么归一化？为什么 Transformer 用 LayerNorm？",
+      "category": "深度学习",
+      "difficulty": "hard",
+      "follow_up": "BatchNorm 在推理和训练阶段的行为差异是什么？这带来什么部署注意点？"
+    },
+    {
+      "question": "二分类里正负样本 1:1000，你会怎么处理？过采样、欠采样、代价敏感、阈值调整各自的适用条件？",
+      "category": "评估与调优",
+      "difficulty": "medium",
+      "follow_up": "为什么此时 accuracy 没有意义？PR 曲线和 ROC 曲线哪个更能反映问题？"
+    },
+    {
+      "question": "AUC 的概率含义是什么？它和阈值是什么关系？什么情况下 AUC 高但线上效果差？",
+      "category": "评估与调优",
+      "difficulty": "medium",
+      "follow_up": "AUC 对样本分布敏感吗？两组不同正负比的测试集算出的 AUC 能直接比较吗？"
+    },
+    {
+      "question": "设计一个向量召回方案：embedding 怎么训、负样本怎么采、近似检索怎么选？",
+      "category": "推荐与检索",
+      "difficulty": "hard",
+      "follow_up": "hard negative 和 easy negative 混采的比例失衡会带来什么问题？怎么评估召回质量？"
+    },
+    {
+      "question": "微调 vs RAG vs 长上下文，三者怎么选？给出你的决策依据。",
+      "category": "LLM 应用",
+      "difficulty": "medium",
+      "follow_up": "哪些知识必须沉淀进模型参数，哪些必须外挂？为什么临时性强的知识不适合微调？"
+    },
+    {
+      "question": "LLM 幻觉是怎么产生的？你在 RAG 系统里会从哪几个层面缓解？",
+      "category": "LLM 应用",
+      "difficulty": "medium",
+      "follow_up": "「引用原文片段 + 拒答兜底」为什么只能缓解而不能消除幻觉？评测幻觉你用什么指标？"
+    },
+    {
+      "question": "模型上线后你怎么监控效果？数据漂移和概念漂移分别怎么检测？",
+      "category": "线上化",
+      "difficulty": "hard",
+      "follow_up": "线上没有实时 ground-truth 时，你会用哪些代理指标先报警？延迟标注回流后怎么闭环？"
+    },
+    {
+      "question": "A/B 测试怎么做才能可信？样本量、显著性水平、指标选择分别怎么定？",
+      "category": "线上化",
+      "difficulty": "medium",
+      "follow_up": "新策略同时提升了点击但降低了停留时长，你会怎么决策？多发实验的 P-hacking 风险怎么控制？"
+    }
+  ]
+}

@@ -17,6 +17,12 @@ intelliview interview                      # 按题库开面
 | `backend-python` | Python 后端开发工程师 | 12 |
 | `frontend-react` | 前端开发工程师（React） | 12 |
 | `algorithm-fundamentals` | 算法与数据结构基础（通用） | 12 |
+| `algorithm-advanced` | 算法与数据结构进阶（通用） | 12 |
+| `backend-java` | Java 后端开发工程师 | 12 |
+| `backend-go` | Go 后端开发工程师 | 12 |
+| `ml-engineer` | 机器学习 / 算法工程师 | 12 |
+| `product-manager` | 产品经理（C 端/策略向） | 12 |
+| `behavioral-english` | Behavioral Interview (English) | 12 |
 
 ## 贡献新岗位包（欢迎 PR 🎉）
 

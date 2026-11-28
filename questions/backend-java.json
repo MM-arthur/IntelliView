@@ -1,0 +1,88 @@
+{
+  "id": "backend-java",
+  "position": "Java 后端开发工程师",
+  "description": "覆盖 JVM、并发、Spring 生态、MySQL 调优、分布式与线上问题排查的进阶面试题库。",
+  "version": 1,
+  "key_points": [
+    "JVM 与 GC",
+    "Java 并发",
+    "Spring 生态",
+    "MySQL 与 ORM",
+    "分布式与微服务",
+    "线上问题排查"
+  ],
+  "questions": [
+    {
+      "question": "讲讲 JVM 运行时数据区：哪些线程共享、哪些线程私有？各区域分别存放什么？",
+      "category": "JVM",
+      "difficulty": "easy",
+      "follow_up": "StackOverflowError 和堆 OOM 分别发生在哪个区域？你会怎么排查和区分？"
+    },
+    {
+      "question": "CMS 和 G1 的核心区别是什么？什么场景下你会选 G1，依据是什么？",
+      "category": "JVM",
+      "difficulty": "medium",
+      "follow_up": "G1 的 Region 和 Remembered Set 是怎么配合实现可预测停顿的？"
+    },
+    {
+      "question": "JDK 8 之后 HashMap 的底层结构是怎样的？为什么链表长度到 8 才转红黑树？",
+      "category": "Java 基础",
+      "difficulty": "easy",
+      "follow_up": "为什么 HashMap 容量必须是 2 的幂？扩容时元素是怎么迁移的？"
+    },
+    {
+      "question": "volatile 保证了什么、不保证什么？举一个必须用 volatile 的真实场景。",
+      "category": "Java 并发",
+      "difficulty": "medium",
+      "follow_up": "为什么 volatile 的 i++ 不是原子操作？底层是怎么发生的？"
+    },
+    {
+      "question": "讲讲 synchronized 的锁升级过程：无锁 → 偏向锁 → 轻量级锁 → 重量级锁分别在什么条件下发生？",
+      "category": "Java 并发",
+      "difficulty": "medium",
+      "follow_up": "偏向锁在 JDK 15 之后为什么被废弃？它带来了什么问题？"
+    },
+    {
+      "question": "AQS 的核心设计是什么？以 ReentrantLock 的非公平锁为例讲讲加锁流程。",
+      "category": "Java 并发",
+      "difficulty": "hard",
+      "follow_up": "公平锁和非公平锁在 tryAcquire 上的差异是什么？各自的适用场景？"
+    },
+    {
+      "question": "Spring Bean 的生命周期里，实例化、属性注入、初始化回调、AOP 代理分别发生在哪一步？",
+      "category": "Spring",
+      "difficulty": "medium",
+      "follow_up": "三级缓存是怎么解决循环依赖的？为什么构造器注入的循环依赖解决不了？"
+    },
+    {
+      "question": "列举至少 4 种 Spring 事务失效的场景，并解释每种失效的根因。",
+      "category": "Spring",
+      "difficulty": "medium",
+      "follow_up": "事务方法内部调用 this.method() 为什么失效？有什么可行的修复方案，各自的代价？"
+    },
+    {
+      "question": "深分页 limit 100000, 20 为什么慢？给出至少两种优化方案及其适用条件。",
+      "category": "MySQL",
+      "difficulty": "medium",
+      "follow_up": "游标/延迟关联方案在什么条件下会失效（如排序字段不连续）？"
+    },
+    {
+      "question": "Redis 分布式锁和 Zookeeper 分布式锁各自的实现原理、优缺点和适用场景？",
+      "category": "分布式",
+      "difficulty": "hard",
+      "follow_up": "Redis 主从切换导致锁丢失的场景怎么发生？Redlock 为什么存在争议？"
+    },
+    {
+      "question": "微服务拆分的边界你会依据什么判断？拆分不当会出现什么问题？",
+      "category": "微服务",
+      "difficulty": "medium",
+      "follow_up": "服务雪崩是怎么发生的？限流、熔断、降级分别在哪个环节生效？"
+    },
+    {
+      "question": "线上 Java 服务 CPU 100%，你的完整排查步骤是什么？",
+      "category": "线上排查",
+      "difficulty": "hard",
+      "follow_up": "top -Hp 找到线程后为什么要用 printf 把线程 id 转成十六进制？如果 jstack 里找不到对应栈，还要查什么？"
+    }
+  ]
+}

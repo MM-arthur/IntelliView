@@ -4,6 +4,23 @@
 
 > 本项目同时是一部**架构演化史**：从 LangGraph 全栈单体 → 多 Agent 编排 → QwenPaw 插件 → 一引擎多适配器。完整演化过程（含架构图与升级路径）见文末[「附录 · 架构演化史」](#附录--架构演化史)。
 
+## [0.7.0] - 2026-11-28
+
+### Added
+
+- **题库 3 → 9 包**（各 12 题，含追问，难度三档齐全）：
+  - `backend-java`：JVM / 并发 / Spring / 分布式 / 线上排查
+  - `backend-go`：GMP 调度 / channel / GC / pprof / 优雅退出
+  - `algorithm-advanced`：DP 降维 / 图论 / 二分答案 / 单调栈 / 均摊分析
+  - `ml-engineer`：经典 ML / 深度学习 / LLM 与 RAG / 线上监控与 A/B
+  - `product-manager`：需求判断 / 数据驱动 / 用户研究 / 商业化
+  - `behavioral-english`：英文行为面（STAR 结构，追问全部要求量化证据）
+- **Issue 模板**（`.github/ISSUE_TEMPLATE/`）：Bug / Feature / 新岗位包提案（标注 `good first issue` 路径）
+
+### Changed
+
+- README / questions/README 的岗位包数量说明同步为 9 包。
+
 ## [0.6.0] - 2026-11-28
 
 ### Added

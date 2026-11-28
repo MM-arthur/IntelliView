@@ -1,0 +1,88 @@
+{
+  "id": "algorithm-advanced",
+  "position": "算法与数据结构进阶（通用）",
+  "description": "面向中大厂算法轮的进阶题库：动态规划、图论、二分答案、单调栈、滑动窗口等高频专题的设计思路与边界拷问。",
+  "version": 1,
+  "key_points": [
+    "动态规划",
+    "图论",
+    "二分与贪心",
+    "回溯与剪枝",
+    "单调栈与滑动窗口",
+    "复杂度分析"
+  ],
+  "questions": [
+    {
+      "question": "拿到一道动态规划题，你的完整设计流程是什么（状态、转移、初始化、顺序）？用一道你做过的题演示。",
+      "category": "动态规划",
+      "difficulty": "medium",
+      "follow_up": "这题的状态设计有没有降维空间？滚动数组能省掉哪一维，条件是什么？"
+    },
+    {
+      "question": "0-1 背包和完全背包的滚动数组写法有什么关键差异？为什么一个倒序枚举容量、一个正序？",
+      "category": "动态规划",
+      "difficulty": "medium",
+      "follow_up": "如果求组合数和排列数，外层物品/容量的循环顺序分别怎么换？为什么？"
+    },
+    {
+      "question": "最长递增子序列怎么从 O(n²) 优化到 O(n log n)？讲清贪心+二分的思路。",
+      "category": "动态规划",
+      "difficulty": "hard",
+      "follow_up": "优化后 dp 数组里存的还是 LIS 本身吗？怎么还原出其中一条具体序列？"
+    },
+    {
+      "question": "Dijkstra 为什么不能处理负权边？这个失败发生在算法的哪个假设上？",
+      "category": "图论",
+      "difficulty": "medium",
+      "follow_up": "负权场景你会换成什么算法？它对图中不能有什么结构？"
+    },
+    {
+      "question": "给定有向图，怎么判断存在环并给出一个拓扑序？讲讲 Kahn 算法每一步维护什么。",
+      "category": "图论",
+      "difficulty": "medium",
+      "follow_up": "如果要求在所有拓扑序中取字典序最小的一个，算法要怎么改？"
+    },
+    {
+      "question": "「二分答案」类题的判定特征是什么？怎么快速识别一道题可以二分答案而不是二分下标？",
+      "category": "二分",
+      "difficulty": "medium",
+      "follow_up": "二分的边界（left/right 的更新与结束条件）你是怎么模板化避免死循环的？"
+    },
+    {
+      "question": "回溯题里去重和剪枝分别解决什么问题？以含重复元素的全排列为例讲讲去重条件。",
+      "category": "回溯",
+      "difficulty": "medium",
+      "follow_up": "同层去重的判断为什么是 i > start 而不是 i > 0？两种写法各代表什么语义？"
+    },
+    {
+      "question": "单调栈解决的核心问题类型是什么？以「下一个更大元素」讲讲入栈出栈规则。",
+      "category": "数据结构",
+      "difficulty": "hard",
+      "follow_up": "遇到相等元素时栈该弹出还是保留？不同选择分别对应什么题目语义？"
+    },
+    {
+      "question": "滑动窗口适用的题目特征是什么？窗口收缩条件的单调性为什么是关键？",
+      "category": "数据结构",
+      "difficulty": "medium",
+      "follow_up": "窗口内元素可负数时滑动窗口为什么会失效？这时候只能怎么办？"
+    },
+    {
+      "question": "Prim 和 Kruskal 分别适合什么图？两者的时间复杂度和实现要点？",
+      "category": "图论",
+      "difficulty": "hard",
+      "follow_up": "Kruskal 为什么要用并查集？按秩合并+路径压缩后的均摊复杂度是多少？"
+    },
+    {
+      "question": "前缀和与差分数别解决什么问题？举一个「区间批量修改 + 单点查询」的例子。",
+      "category": "数据结构",
+      "difficulty": "easy",
+      "follow_up": "如果既要区间修改又要区间求和，差分数组还够用吗？需要升级成什么结构？"
+    },
+    {
+      "question": "什么是均摊复杂度？以动态数组的 push_back 为例讲讲均摊分析怎么算。",
+      "category": "复杂度",
+      "difficulty": "medium",
+      "follow_up": "「均摊 O(1)」和「平均 O(1)」在语义上有什么本质区别？举一个前者不成立的反例。"
+    }
+  ]
+}

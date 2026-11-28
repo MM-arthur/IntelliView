@@ -127,7 +127,7 @@ pack; mock interviews then draw from it, and failed questions feed the error
 deck:
 
 ```powershell
-intelliview bank list                  # 3 starter packs + your custom ones
+intelliview bank list                  # 9 open packs + your custom ones
 intelliview bank show backend-python   # preview
 intelliview bank use backend-python    # import & activate
 python cli.py bank validate questions  # contributor self-check
