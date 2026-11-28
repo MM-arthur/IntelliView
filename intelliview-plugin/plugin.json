@@ -1,10 +1,19 @@
 {
   "id": "intelliview",
   "name": "IntelliView 面试助手",
-  "version": "0.3.0",
-  "entry": {"backend": "main.py"},
+  "version": "0.4.0",
+  "entry": {
+    "backend": "main.py"
+  },
   "sdk": {
     "version": "1.1.0",
-    "capabilities": ["tools", "storage", "logging", "prompts", "skills", "hooks"]
+    "capabilities": [
+      "tools",
+      "storage",
+      "logging",
+      "prompts",
+      "skills",
+      "hooks"
+    ]
   }
 }
