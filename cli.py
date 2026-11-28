@@ -135,11 +135,19 @@ async def chat_loop(
                 continue
             messages.append({"role": "user", "content": line})
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=OPENAI_TOOLS,
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                tools=OPENAI_TOOLS,
+            )
+        except Exception as exc:  # noqa: BLE001 —— 网络/鉴权/超时等给出可读提示
+            print_fn(f"⚠️ 请求失败：{exc}")
+            print_fn(
+                "检查 INTELLIVIEW_BASE_URL / INTELLIVIEW_API_KEY / 网络"
+                "（quit 退出）"
+            )
+            break
         message = response.choices[0].message
         tool_calls = getattr(message, "tool_calls", None)
         if tool_calls:
@@ -184,8 +192,10 @@ async def chat_loop(
 
 
 def _make_client(args: argparse.Namespace):
-    api_key = args.api_key or os.environ.get("INTELLIVIEW_API_KEY") or os.environ.get(
-        "OPENAI_API_KEY"
+    api_key = (
+        getattr(args, "api_key", "")
+        or os.environ.get("INTELLIVIEW_API_KEY")
+        or os.environ.get("OPENAI_API_KEY")
     )
     if not api_key:
         print(
@@ -202,7 +212,9 @@ def _make_client(args: argparse.Namespace):
             file=sys.stderr,
         )
         raise SystemExit(2)
-    base_url = args.base_url or os.environ.get("INTELLIVIEW_BASE_URL", DEFAULT_BASE_URL)
+    base_url = getattr(args, "base_url", "") or os.environ.get(
+        "INTELLIVIEW_BASE_URL", DEFAULT_BASE_URL
+    )
     return OpenAI(api_key=api_key, base_url=base_url)
 
 
